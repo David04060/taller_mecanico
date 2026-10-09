@@ -70,7 +70,7 @@ npm run lint
 npm run build
 ```
 
-## Preparación para EC2 y RDS
+## Preparación
 
 El código no depende de direcciones locales codificadas. Para el despliegue posterior se configurarán mediante variables de entorno:
 
