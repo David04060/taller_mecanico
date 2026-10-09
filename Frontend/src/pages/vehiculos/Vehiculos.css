@@ -1,0 +1,447 @@
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+
+.vehiculos {
+  width: 100%;
+}
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.vehiculos-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.vehiculos-titulo h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.vehiculos-titulo p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* =========================================================
+   BOTÓN NUEVO
+   Mismo diseño que CLIENTES
+   ========================================================= */
+
+.vehiculos-boton-nuevo {
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.vehiculos-boton-nuevo:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   FORMULARIO
+   Mismo diseño que CLIENTES
+   ========================================================= */
+
+.vehiculos-formulario-contenedor {
+  margin-bottom: 20px;
+  padding: 22px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   ENCABEZADO DEL FORMULARIO
+   ========================================================= */
+
+.vehiculos-formulario-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.vehiculos-formulario-encabezado h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.vehiculos-formulario-encabezado p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* =========================================================
+   BOTÓN CERRAR
+   ========================================================= */
+
+.vehiculos-boton-cerrar {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 22px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.vehiculos-boton-cerrar:hover {
+  background: #e2e8f0;
+}
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.vehiculos-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================================
+   GRID DE CAMPOS
+   ========================================================= */
+
+.vehiculos-formulario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+.vehiculos-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.vehiculos-campo label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.vehiculos-campo input,
+.vehiculos-campo select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+}
+
+.vehiculos-campo input:focus,
+.vehiculos-campo select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* =========================================================
+   ERROR DEL FORMULARIO
+   ========================================================= */
+
+.vehiculos-formulario-error {
+  padding: 11px 13px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+/* =========================================================
+   ACCIONES DEL FORMULARIO
+   ========================================================= */
+
+.vehiculos-formulario-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* =========================================================
+   BOTÓN CANCELAR
+   Mismo diseño que CLIENTES
+   ========================================================= */
+
+.vehiculos-boton-cancelar {
+  min-width: 110px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vehiculos-boton-cancelar:hover {
+  background: #f8fafc;
+}
+
+/* =========================================================
+   BOTÓN GUARDAR
+   Mismo diseño que CLIENTES
+   ========================================================= */
+
+.vehiculos-boton-guardar {
+  min-width: 130px;
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vehiculos-boton-guardar:hover {
+  background: #1d4ed8;
+}
+
+.vehiculos-boton-cancelar:disabled,
+.vehiculos-boton-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   RESUMEN
+   ========================================================= */
+
+.vehiculos-resumen {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.vehiculos-resumen strong {
+  color: #0f172a;
+}
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.vehiculos-tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.vehiculos-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.vehiculos-tabla thead {
+  background: #f8fafc;
+}
+
+.vehiculos-tabla th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.vehiculos-tabla td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.vehiculos-tabla tbody tr:hover {
+  background: #f8fafc;
+}
+
+.vehiculos-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   ESTADOS
+   ========================================================= */
+
+.vehiculo-estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.vehiculo-estado.activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.vehiculo-estado.inactivo {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================================
+   ACCIONES DE LA TABLA
+   Mismos diseños que CLIENTES
+   ========================================================= */
+
+.vehiculo-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================
+   BOTÓN EDITAR
+   ========================================================= */
+
+.vehiculo-boton-editar {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: white;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vehiculo-boton-editar:hover {
+  background: #eff6ff;
+}
+
+/* =========================================================
+   BOTÓN DESACTIVAR
+   ========================================================= */
+
+.vehiculo-boton-desactivar {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #dc2626;
+  border-radius: 6px;
+  background: white;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vehiculo-boton-desactivar:hover {
+  background: #fef2f2;
+}
+
+/* =========================================================
+   BOTÓN ACTIVAR
+   ========================================================= */
+
+.vehiculo-boton-activar {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #16a34a;
+  border-radius: 6px;
+  background: white;
+  color: #16a34a;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vehiculo-boton-activar:hover {
+  background: #f0fdf4;
+}
+
+/* =========================================================
+   SIN DATOS
+   ========================================================= */
+
+.vehiculos-sin-datos {
+  padding: 30px !important;
+  color: #64748b !important;
+  text-align: center;
+}
+
+/* =========================================================
+   ERROR GENERAL
+   ========================================================= */
+
+.vehiculos-error {
+  padding: 12px;
+  border-radius: 7px;
+  background: #fee2e2;
+  color: #991b1b !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .vehiculos-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .vehiculos-boton-nuevo {
+    width: 100%;
+  }
+
+  .vehiculos-formulario-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vehiculos-formulario-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .vehiculos-boton-cancelar,
+  .vehiculos-boton-guardar {
+    width: 100%;
+  }
+}

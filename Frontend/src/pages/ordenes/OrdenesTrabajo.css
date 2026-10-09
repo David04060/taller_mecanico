@@ -1,0 +1,465 @@
+/* =========================================================
+   CONTENEDOR PRINCIPAL
+   ========================================================= */
+
+.ordenes {
+  width: 100%;
+}
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.ordenes-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.ordenes-titulo h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.ordenes-titulo p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* =========================================================
+   BOTÓN NUEVO
+   ========================================================= */
+
+.ordenes-boton-nuevo {
+  height: 36px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ordenes-boton-nuevo:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.ordenes-formulario-contenedor {
+  margin-bottom: 20px;
+  padding: 22px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   ENCABEZADO DEL FORMULARIO
+   ========================================================= */
+
+.ordenes-formulario-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.ordenes-formulario-encabezado h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.ordenes-formulario-encabezado p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+/* =========================================================
+   BOTÓN CERRAR
+   ========================================================= */
+
+.ordenes-boton-cerrar {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 22px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.ordenes-boton-cerrar:hover {
+  background: #e2e8f0;
+}
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+.ordenes-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ordenes-formulario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+/* =========================================================
+   CAMPOS
+   ========================================================= */
+
+.ordenes-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.ordenes-campo-completo {
+  grid-column: 1 / -1;
+}
+
+.ordenes-campo label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.ordenes-campo input,
+.ordenes-campo select,
+.ordenes-campo textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 14px;
+  outline: none;
+}
+
+.ordenes-campo input,
+.ordenes-campo select {
+  height: 38px;
+}
+
+.ordenes-campo textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.ordenes-campo input:focus,
+.ordenes-campo select:focus,
+.ordenes-campo textarea:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.ordenes-formulario-error {
+  padding: 11px 13px;
+  border: 1px solid #fecaca;
+  border-radius: 7px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+/* =========================================================
+   ACCIONES DEL FORMULARIO
+   ========================================================= */
+
+.ordenes-formulario-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* =========================================================
+   BOTÓN CANCELAR
+   ========================================================= */
+
+.ordenes-boton-cancelar {
+  min-width: 110px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ordenes-boton-cancelar:hover {
+  background: #f8fafc;
+}
+
+/* =========================================================
+   BOTÓN GUARDAR
+   ========================================================= */
+
+.ordenes-boton-guardar {
+  min-width: 130px;
+  height: 36px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.ordenes-boton-guardar:hover {
+  background: #1d4ed8;
+}
+
+.ordenes-boton-cancelar:disabled,
+.ordenes-boton-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   RESUMEN
+   ========================================================= */
+
+.ordenes-resumen {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.ordenes-resumen strong {
+  color: #0f172a;
+}
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.ordenes-tabla-contenedor {
+  width: 100%;
+  overflow-x: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.ordenes-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.ordenes-tabla thead {
+  background: #f8fafc;
+}
+
+.ordenes-tabla th {
+  padding: 12px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.ordenes-tabla td {
+  padding: 12px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+  white-space: nowrap;
+}
+
+.ordenes-tabla tbody tr:hover {
+  background: #f8fafc;
+}
+
+.ordenes-tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================================
+   INFORMACIÓN SECUNDARIA
+   ========================================================= */
+
+.ordenes-detalle-secundario {
+  color: #64748b;
+  font-size: 11px;
+}
+
+/* =========================================================
+   ESTADOS DE ÓRDENES
+   ========================================================= */
+
+.orden-estado {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Recibido */
+
+.orden-estado.estado-1 {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+/* En diagnóstico */
+
+.orden-estado.estado-2 {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+/* Esperando aprobación */
+
+.orden-estado.estado-3 {
+  background: #ede9fe;
+  color: #6d28d9;
+}
+
+/* En reparación */
+
+.orden-estado.estado-4 {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Listo para entrega */
+
+.orden-estado.estado-5 {
+  background: #dcfce7;
+  color: #166534;
+}
+
+/* Entregado */
+
+.orden-estado.estado-6 {
+  background: #d1fae5;
+  color: #047857;
+}
+
+/* Cancelado */
+
+.orden-estado.estado-7 {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================================
+   ACCIONES
+   ========================================================= */
+
+.orden-acciones {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* =========================================================
+   BOTÓN VER
+   ========================================================= */
+
+.orden-boton-ver {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid #2563eb;
+  border-radius: 6px;
+  background: white;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.orden-boton-ver:hover {
+  background: #eff6ff;
+}
+
+/* =========================================================
+   SIN DATOS
+   ========================================================= */
+
+.ordenes-sin-datos {
+  padding: 30px !important;
+  color: #64748b !important;
+  text-align: center;
+}
+
+/* =========================================================
+   ERROR GENERAL
+   ========================================================= */
+
+.ordenes-error {
+  padding: 12px;
+  border-radius: 7px;
+  background: #fee2e2;
+  color: #991b1b !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .ordenes-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .ordenes-boton-nuevo {
+    width: 100%;
+  }
+
+  .ordenes-formulario-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ordenes-campo-completo {
+    grid-column: auto;
+  }
+
+  .ordenes-formulario-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .ordenes-boton-cancelar,
+  .ordenes-boton-guardar {
+    width: 100%;
+  }
+}

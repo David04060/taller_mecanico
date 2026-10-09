@@ -1,0 +1,248 @@
+/* =========================================================
+   DISEÑO PRINCIPAL
+   ========================================================= */
+
+.diseño-principal {
+  display: flex;
+  min-height: 100vh;
+  background: #f1f5f9;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* =========================================================
+   BARRA LATERAL
+   ========================================================= */
+
+.barra-lateral {
+  width: 250px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  color: white;
+}
+
+.barra-lateral-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px;
+  border-bottom: 1px solid #1e293b;
+}
+
+.logo-icono {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #2563eb;
+  font-weight: bold;
+}
+
+.barra-lateral-logo h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.barra-lateral-logo span {
+  display: block;
+  margin-top: 4px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+/* =========================================================
+   NAVEGACIÓN
+   ========================================================= */
+
+.barra-lateral-navegacion {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 20px 12px;
+}
+
+.enlace-navegacion {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 14px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.enlace-navegacion span {
+  width: 22px;
+  text-align: center;
+}
+
+.enlace-navegacion:hover {
+  background: #1e293b;
+  color: white;
+}
+
+.enlace-navegacion.active {
+  background: #2563eb;
+  color: white;
+}
+
+/* =========================================================
+   USUARIO DE LA BARRA LATERAL
+   ========================================================= */
+
+.barra-lateral-usuario {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: auto;
+  padding: 18px;
+  border-top: 1px solid #1e293b;
+}
+
+.usuario-rol {
+  color: #60a5fa;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.usuario-nombre {
+  color: #e2e8f0;
+  font-size: 13px;
+}
+
+/* =========================================================
+   CONTENIDO PRINCIPAL
+   ========================================================= */
+
+.contenido-principal {
+  flex: 1;
+  min-width: 0;
+}
+
+/* =========================================================
+   ENCABEZADO
+   ========================================================= */
+
+.encabezado {
+  min-height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 30px;
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.encabezado h1 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 22px;
+}
+
+.encabezado p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.encabezado-usuario {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.informacion-usuario {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.informacion-usuario strong {
+  color: #0f172a;
+  font-size: 13px;
+}
+
+.informacion-usuario span {
+  color: #64748b;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+.boton-cerrar-sesion {
+  padding: 9px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #334155;
+  cursor: pointer;
+}
+
+.boton-cerrar-sesion:hover {
+  background: #f8fafc;
+}
+
+/* =========================================================
+   CONTENIDO DE LAS PÁGINAS
+   ========================================================= */
+
+.contenido-pagina {
+  padding: 30px;
+}
+
+/* =========================================================
+   RESPONSIVE - PANTALLAS MEDIANAS
+   ========================================================= */
+
+@media (max-width: 800px) {
+  .barra-lateral {
+    width: 210px;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE - CELULARES
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .diseño-principal {
+    flex-direction: column;
+  }
+
+  .barra-lateral {
+    width: 100%;
+    min-height: auto;
+  }
+
+  .barra-lateral-navegacion {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .barra-lateral-usuario {
+    margin-top: 0;
+  }
+
+  .encabezado {
+    padding: 15px;
+  }
+
+  .encabezado-usuario {
+    gap: 10px;
+  }
+
+  .informacion-usuario {
+    display: none;
+  }
+
+  .contenido-pagina {
+    padding: 15px;
+  }
+}

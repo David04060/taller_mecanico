@@ -1,0 +1,372 @@
+.clientes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* =========================================================
+   TÍTULO
+   ========================================================= */
+
+.clientes-titulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.clientes-titulo h2 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 24px;
+}
+
+.clientes-titulo p {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 14px;
+}
+
+/* =========================================================
+   BOTÓN NUEVO CLIENTE
+   ========================================================= */
+
+.clientes-boton-nuevo {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 7px;
+  background: #2563eb;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.clientes-boton-nuevo:hover {
+  background: #1d4ed8;
+}
+
+/* =========================================================
+   RESUMEN
+   ========================================================= */
+
+.clientes-resumen {
+  padding: 16px 20px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.clientes-resumen strong {
+  color: #0f172a;
+}
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.clientes-tabla-contenedor {
+  overflow-x: auto;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.clientes-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+}
+
+.clientes-tabla thead {
+  background: #f8fafc;
+}
+
+.clientes-tabla th {
+  padding: 14px 16px;
+  text-align: left;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.clientes-tabla td {
+  padding: 15px 16px;
+  color: #475569;
+  font-size: 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.clientes-tabla tbody tr:hover {
+  background: #f8fafc;
+}
+
+.cliente-nombre strong {
+  color: #0f172a;
+  font-size: 14px;
+}
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+
+.cliente-estado {
+  display: inline-flex;
+  padding: 5px 9px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.cliente-estado.activo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.cliente-estado.inactivo {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================================
+   SIN DATOS
+   ========================================================= */
+
+.clientes-sin-datos {
+  padding: 35px !important;
+  text-align: center;
+  color: #64748b !important;
+}
+
+/* =========================================================
+   ERROR
+   ========================================================= */
+
+.clientes-error {
+  color: #dc2626 !important;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 600px) {
+  .clientes-titulo {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .clientes-boton-nuevo {
+    width: 100%;
+  }
+}
+/* =========================================================
+   FORMULARIO DE CLIENTES
+   ========================================================= */
+
+.clientes-formulario-contenedor {
+  padding: 22px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+}
+
+.clientes-formulario-encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 22px;
+}
+
+.clientes-formulario-encabezado h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 17px;
+}
+
+.clientes-formulario-encabezado p {
+  margin: 5px 0 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.clientes-boton-cerrar {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.clientes-boton-cerrar:hover {
+  background: #e2e8f0;
+}
+
+.clientes-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.clientes-formulario-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px;
+}
+
+.clientes-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.clientes-campo label {
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.clientes-campo input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  background: white;
+  color: #0f172a;
+  font-size: 14px;
+  outline: none;
+}
+
+.clientes-campo input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.clientes-formulario-error {
+  padding: 11px 13px;
+  border-radius: 7px;
+  background: #fee2e2;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.clientes-formulario-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.clientes-boton-cancelar,
+.clientes-boton-guardar {
+  padding: 10px 16px;
+  border-radius: 7px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.clientes-boton-cancelar {
+  border: 1px solid #cbd5e1;
+  background: white;
+  color: #475569;
+}
+
+.clientes-boton-cancelar:hover {
+  background: #f8fafc;
+}
+
+.clientes-boton-guardar {
+  border: none;
+  background: #2563eb;
+  color: white;
+}
+
+.clientes-boton-guardar:hover {
+  background: #1d4ed8;
+}
+
+.clientes-boton-cancelar:disabled,
+.clientes-boton-guardar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 700px) {
+  .clientes-formulario-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .clientes-formulario-acciones {
+    flex-direction: column-reverse;
+  }
+
+  .clientes-boton-cancelar,
+  .clientes-boton-guardar {
+    width: 100%;
+  }
+}
+/* =========================================================
+   ACCIONES DE CLIENTE
+   ========================================================= */
+
+.cliente-acciones {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  white-space: nowrap;
+}
+
+.cliente-boton-editar,
+.cliente-boton-desactivar,
+.cliente-boton-activar {
+  min-width: 85px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 6px;
+  background: white;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+/* Editar */
+
+.cliente-boton-editar {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+}
+
+.cliente-boton-editar:hover {
+  background: #eff6ff;
+}
+
+/* Desactivar */
+
+.cliente-boton-desactivar {
+  border: 1px solid #dc2626;
+  color: #dc2626;
+}
+
+.cliente-boton-desactivar:hover {
+  background: #fef2f2;
+}
+
+/* Activar */
+
+.cliente-boton-activar {
+  border: 1px solid #16a34a;
+  color: #16a34a;
+}
+
+.cliente-boton-activar:hover {
+  background: #f0fdf4;
+}
