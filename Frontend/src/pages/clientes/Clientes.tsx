@@ -25,6 +25,8 @@ interface FormularioCliente {
 
 function Clientes() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [busqueda, setBusqueda] = useState("");
+  const filtrados = clientes.filter(item => `${item.nombres} ${item.apellidos} ${item.dni} ${item.telefono ?? ""} ${item.email ?? ""}`.toLocaleLowerCase("es").includes(busqueda.trim().toLocaleLowerCase("es")));
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -387,8 +389,8 @@ function Clientes() {
           </div>
           <div className="clientes-formulario-grid">
             <div className="clientes-campo">
-              <label>Correo de acceso</label>
-              <input
+              <label htmlFor="clientes-campo-1">Correo de acceso</label>
+              <input id="clientes-campo-1"
                 type="email"
                 required
                 value={acceso.email}
@@ -398,8 +400,8 @@ function Clientes() {
               />
             </div>
             <div className="clientes-campo">
-              <label>Contraseña de acceso</label>
-              <input
+              <label htmlFor="clientes-campo-2">Contraseña de acceso</label>
+              <input id="clientes-campo-2"
                 type="password"
                 minLength={8}
                 required
@@ -432,6 +434,10 @@ function Clientes() {
         </span>
       </div>
 
+      <div className="filtros" style={{ marginBottom: 16 }}>
+        <label className="campo" style={{ flex: 1 }}><span>Buscar clientes</span><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Escribe para filtrar los resultados" /></label>
+        <span className="resultado-busqueda" role="status">{filtrados.length} de {clientes.length} resultados</span>
+      </div>
       <div className="clientes-tabla-contenedor">
         <table className="clientes-tabla">
           <thead>
@@ -447,14 +453,14 @@ function Clientes() {
           </thead>
 
           <tbody>
-            {clientes.length === 0 ? (
+            {filtrados.length === 0 ? (
               <tr>
                 <td colSpan={7} className="clientes-sin-datos">
                   No hay clientes registrados.
                 </td>
               </tr>
             ) : (
-              clientes.map((cliente) => (
+              filtrados.map((cliente) => (
                 <tr key={cliente.id}>
                   <td>{cliente.id}</td>
 

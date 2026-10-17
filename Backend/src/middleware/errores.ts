@@ -10,6 +10,12 @@ export const manejarErrores: ErrorRequestHandler = (
   res,
   _next,
 ) => {
+  if (error?.type === "entity.parse.failed") {
+    res.status(400).json({ mensaje: "El cuerpo JSON no es válido" }); return;
+  }
+  if (error?.type === "entity.too.large") {
+    res.status(413).json({ mensaje: "La solicitud supera el tamaño permitido" }); return;
+  }
   console.error("Error no controlado:", error);
   res.status(500).json({ mensaje: "Error interno del servidor" });
 };

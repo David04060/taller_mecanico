@@ -1,7 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAutenticacion } from "../../hooks/useAutenticacion";
 
-function Encabezado() {
+import Icono from "./Icono";
+
+function Encabezado({ menuAbierto, alternarMenu }: { menuAbierto: boolean; alternarMenu: () => void }) {
   const navegar = useNavigate();
   const ubicacion = useLocation();
   const { usuario, cerrarSesion } = useAutenticacion();
@@ -11,7 +13,7 @@ function Encabezado() {
     navegar("/", { replace: true });
   };
   const titulos: Record<string, string> = {
-    "/dashboard": "Dashboard",
+    "/dashboard": "Vista general",
     "/clientes": "Clientes",
     "/vehiculos": "Vehículos",
     "/ordenes": "Órdenes de trabajo",
@@ -20,7 +22,10 @@ function Encabezado() {
     "/inventario": "Inventario",
     "/pagos": "Pagos",
     "/usuarios": "Usuarios",
-    "/mi-cuenta": "Mi cuenta",
+    "/mi-cuenta": "Vista general",
+    "/mi-cuenta/vehiculos": "Mis vehículos",
+    "/mi-cuenta/ordenes": "Mis órdenes",
+    "/mi-cuenta/pagos": "Mis pagos",
     "/mi-perfil": "Mi perfil",
   };
   const titulo =
@@ -31,7 +36,8 @@ function Encabezado() {
 
   return (
     <header className="encabezado">
-      <div>
+      <button className="boton-menu" onClick={alternarMenu} aria-expanded={menuAbierto} aria-controls="navegacion-taller" aria-label={menuAbierto ? "Cerrar menú" : "Abrir menú"}><Icono nombre="menu"/></button>
+      <div className="encabezado-titulo">
         <h1>{titulo}</h1>
         <p>Bienvenido, {usuario?.nombres}</p>
       </div>
@@ -46,7 +52,7 @@ function Encabezado() {
         </div>
 
         <button className="boton-cerrar-sesion" onClick={manejarCerrarSesion}>
-          Cerrar sesión
+          <Icono nombre="salir" size={17}/> Cerrar sesión
         </button>
       </div>
     </header>

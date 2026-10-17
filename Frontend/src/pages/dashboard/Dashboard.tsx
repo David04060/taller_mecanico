@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+import Icono from "../../components/design/Icono";
 import { useEffect, useMemo, useState } from "react";
 import api from "../../services/api";
 import { useAutenticacion } from "../../hooks/useAutenticacion";
@@ -80,9 +82,15 @@ export default function Dashboard() {
           </strong>
         </div>
       </header>
+      <nav className="dash-accesos" aria-label="Accesos rápidos">
+        <Link to="/ordenes"><Icono nombre="ordenes"/>Gestionar órdenes</Link>
+        <Link to="/clientes"><Icono nombre="clientes"/>Clientes del taller</Link>
+        <Link to="/inventario"><Icono nombre="inventario"/>Revisar inventario</Link>
+        <Link to="/pagos"><Icono nombre="pagos"/>Consultar pagos</Link>
+      </nav>
       <div className="dash-metricas">
         <article>
-          <span className="dash-icono tono-verde">CL</span>
+          <span className="dash-icono tono-verde"><Icono nombre="clientes"/></span>
           <div>
             <small>Clientes activos</small>
             <strong>{resumen.clientes}</strong>
@@ -90,7 +98,7 @@ export default function Dashboard() {
           </div>
         </article>
         <article>
-          <span className="dash-icono tono-azul">VH</span>
+          <span className="dash-icono tono-azul"><Icono nombre="vehiculos"/></span>
           <div>
             <small>Vehículos activos</small>
             <strong>{resumen.vehiculos}</strong>
@@ -98,7 +106,7 @@ export default function Dashboard() {
           </div>
         </article>
         <article>
-          <span className="dash-icono tono-gris">MC</span>
+          <span className="dash-icono tono-gris"><Icono nombre="servicios"/></span>
           <div>
             <small>Mecánicos activos</small>
             <strong>{resumen.mecanicos}</strong>
@@ -110,7 +118,7 @@ export default function Dashboard() {
             resumen.repuestos_bajo_stock > 0 ? "requiere-atencion" : ""
           }
         >
-          <span className="dash-icono tono-arena">ST</span>
+          <span className="dash-icono tono-arena"><Icono nombre="inventario"/></span>
           <div>
             <small>Stock bajo</small>
             <strong>{resumen.repuestos_bajo_stock}</strong>
@@ -155,7 +163,7 @@ export default function Dashboard() {
         </section>
         <aside className="dash-lateral">
           <section className="dash-panel dash-ingresos">
-            <span>Ingresos registrados</span>
+            <span>Ingresos netos</span>
             <strong>
               S/{" "}
               {Number(resumen.ingresos).toLocaleString("es-PE", {
@@ -163,9 +171,9 @@ export default function Dashboard() {
                 maximumFractionDigits: 2,
               })}
             </strong>
-            <p>Suma de todos los pagos recibidos</p>
+            <p>Pagos recibidos menos devoluciones registradas</p>
             <div className="dash-ingresos-marca">
-              Actualizado con los pagos del sistema
+              Actualizado con los movimientos del sistema
             </div>
           </section>
           <section className="dash-panel dash-atencion">

@@ -1,105 +1,58 @@
 import { useEffect, useState } from "react";
 import api from "../../services/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { cargarPortalCliente, type ApartadoCliente, type DatosPortal } from "./portalCliente";
+import Icono from "../../components/design/Icono";
+import "./PortalCliente.css";
 import "../Gestion.css";
-interface Cliente {
-  id: number;
-  dni: string;
-  nombres: string;
-  apellidos: string;
-  telefono: string | null;
-  email: string | null;
-  direccion: string | null;
-}
-interface Vehiculo {
-  id: number;
-  placa: string;
-  marca: string;
-  modelo: string;
-  anio: number | null;
-  color: string | null;
-  activo: boolean;
-}
-interface Orden {
-  id: number;
-  codigo: string;
-  placa: string;
-  marca: string;
-  modelo: string;
-  estado: string;
-  problema_reportado: string;
-  diagnostico: string | null;
-  fecha_ingreso: string;
-  total: number | string;
-  total_pagado: number | string;
-  saldo_pendiente: number | string;
-}
-interface Pago {
-  pago_id: number;
-  orden_codigo: string;
-  placa: string;
-  metodo_pago: string;
-  monto: number | string;
-  fecha_pago: string;
-}
-export default function MiCuenta() {
+const encabezados = {
+  resumen: ["Vista general", "Su taller, sus vehículos y el estado de sus reparaciones."],
+  vehiculos: ["Mis vehículos", "Consulte los vehículos registrados a su nombre."],
+  ordenes: ["Mis órdenes", "Siga el progreso de sus reparaciones y consulte cada detalle."],
+  pagos: ["Mis pagos", "Consulte los pagos registrados en sus órdenes de trabajo."],
+};
+export default function MiCuenta({ apartado = "resumen" }: { apartado?: ApartadoCliente }) {
   const navegar = useNavigate();
-  const [cliente, setCliente] = useState<Cliente | null>(null),
-    [vehiculos, setVehiculos] = useState<Vehiculo[]>([]),
-    [ordenes, setOrdenes] = useState<Orden[]>([]),
-    [pagos, setPagos] = useState<Pago[]>([]),
-    [error, setError] = useState("");
+  const [datos, setDatos] = useState<DatosPortal>({ vehiculos: [], ordenes: [], pagos: [] });
+  const [cargando, setCargando] = useState(true), [error, setError] = useState("");
+  const [intento, setIntento] = useState(0);
+  const { vehiculos, ordenes, pagos } = datos;
   useEffect(() => {
-    Promise.all([
-      api.get("/clientes/mis-datos"),
-      api.get("/clientes/mis-vehiculos"),
-      api.get("/clientes/mis-ordenes"),
-      api.get("/clientes/mis-pagos"),
-    ])
-      .then(([c, v, o, p]) => {
-        setCliente(c.data.cliente);
-        setVehiculos(v.data.vehiculos ?? []);
-        setOrdenes(o.data.ordenes ?? []);
-        setPagos(p.data.pagos ?? []);
-      })
-      .catch((e) =>
-        setError(
-          e.response?.data?.mensaje ?? "No se pudo cargar su información.",
-        ),
-      );
-  }, []);
+    let vigente = true;
+    setCargando(true); setError("");
+    cargarPortalCliente(apartado, ruta => api.get(ruta))
+      .then(resultado => { if (vigente) setDatos(resultado); })
+      .catch(e => { if (vigente) setError(e.response?.data?.mensaje ?? "No se pudo cargar su información."); })
+      .finally(() => { if (vigente) setCargando(false); });
+    return () => { vigente = false; };
+  }, [apartado, intento]);
   return (
     <section className="gestion">
       <div className="gestion-encabezado">
         <div>
-          <h2>Mi cuenta</h2>
-          <p>Seguimiento de sus vehículos, reparaciones y pagos.</p>
+          <h2>{encabezados[apartado][0]}</h2>
+          <p>{encabezados[apartado][1]}</p>
         </div>
       </div>
-      {error && <div className="mensaje-error">{error}</div>}
-      {cliente && (
-        <div className="panel">
-          <h3>
-            {cliente.nombres} {cliente.apellidos}
-          </h3>
-          <div className="formulario-grid">
-            <div>
-              <strong>DNI:</strong> {cliente.dni}
-            </div>
-            <div>
-              <strong>Teléfono:</strong> {cliente.telefono ?? "—"}
-            </div>
-            <div>
-              <strong>Correo:</strong> {cliente.email ?? "—"}
-            </div>
-            <div>
-              <strong>Dirección:</strong> {cliente.direccion ?? "—"}
-            </div>
-          </div>
+      {cargando && <div className="panel" role="status">Cargando su información…</div>}
+      {!cargando && error && <div className="panel"><p className="mensaje-error" role="alert">{error}</p><button className="boton-secundario" onClick={() => setIntento(valor => valor + 1)}>Reintentar</button></div>}
+      {!cargando && !error && <>
+      {apartado === "resumen" && <>
+        <div className="tarjetas-resumen portal-metricas">
+          <article className="tarjeta-resumen"><span>Vehículos registrados</span><strong>{vehiculos.length}</strong><small>Sus vehículos en el taller</small></article>
+          <article className="tarjeta-resumen"><span>Órdenes de trabajo</span><strong>{ordenes.length}</strong><small>Su historial de reparaciones</small></article>
+          <article className="tarjeta-resumen"><span>Saldo pendiente</span><strong>S/ {ordenes.reduce((suma, orden) => suma + Number(orden.saldo_pendiente), 0).toFixed(2)}</strong><small>Saldo de sus órdenes</small></article>
         </div>
-      )}
-      <div>
-        <h3>Mis vehículos</h3>
+        <section className="panel"><h3>Acceda a sus apartados</h3><p className="portal-descripcion">Toda su información, organizada en un lugar propio.</p>
+          <div className="portal-accesos">
+            <Link to="/mi-cuenta/vehiculos"><span className="portal-icono"><Icono nombre="vehiculos" /></span><strong>Mis vehículos</strong><span>Datos de sus vehículos registrados</span><span className="portal-ir">Ver vehículos →</span></Link>
+            <Link to="/mi-cuenta/ordenes"><span className="portal-icono"><Icono nombre="ordenes" /></span><strong>Mis órdenes</strong><span>Reparaciones, servicios y seguimiento</span><span className="portal-ir">Ver órdenes →</span></Link>
+            <Link to="/mi-cuenta/pagos"><span className="portal-icono"><Icono nombre="pagos" /></span><strong>Mis pagos</strong><span>Historial de los pagos de sus órdenes</span><span className="portal-ir">Ver pagos →</span></Link>
+          </div>
+        </section>
+        <div className="panel portal-contacto"><div><h3>Su información de contacto</h3><p className="portal-descripcion">Actualice sus datos personales desde su perfil.</p></div><Link className="portal-enlace-perfil" to="/mi-perfil">Editar mi perfil →</Link></div>
+      </>}
+      {apartado === "vehiculos" && <div>
         <div className="tarjetas-resumen">
           {vehiculos.map((v) => (
             <div className="tarjeta-resumen" key={v.id}>
@@ -114,9 +67,8 @@ export default function MiCuenta() {
           ))}
           {!vehiculos.length && <p>No tiene vehículos registrados.</p>}
         </div>
-      </div>
-      <div>
-        <h3>Mis órdenes</h3>
+      </div>}
+      {apartado === "ordenes" && <div>
         <div className="tabla-contenedor">
           <table className="tabla-gestion">
             <thead>
@@ -149,7 +101,7 @@ export default function MiCuenta() {
                     {new Date(o.fecha_ingreso).toLocaleDateString("es-PE")}
                   </td>
                   <td>
-                    <span className="estado activo">{o.estado}</span>
+                    <span className="estado portal-estado">{o.estado}</span>
                   </td>
                   <td>
                     {o.problema_reportado}
@@ -177,9 +129,9 @@ export default function MiCuenta() {
             </tbody>
           </table>
         </div>
-      </div>
-      <div>
-        <h3>Mis pagos</h3>
+      </div>}
+      {apartado === "pagos" && <div>
+        <div className="panel portal-total-pagos"><span>Total de pagos registrados</span><strong>S/ {pagos.reduce((suma, pago) => suma + Number(pago.monto), 0).toFixed(2)}</strong></div>
         <div className="tabla-contenedor">
           <table className="tabla-gestion">
             <thead>
@@ -209,7 +161,8 @@ export default function MiCuenta() {
             </tbody>
           </table>
         </div>
-      </div>
+      </div>}
+      </>}
     </section>
   );
 }

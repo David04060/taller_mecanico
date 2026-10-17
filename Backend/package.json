@@ -8,7 +8,10 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "create-admin": "tsx src/scripts/crear-admin.ts",
-    "test": "tsx src/scripts/smoke-test.ts"
+    "test": "tsx src/scripts/smoke-test.ts",
+    "db:reembolsos": "npm run build && node dist/scripts/actualizar-reembolsos.js",
+    "test:regression": "npm run build && node --test --test-isolation=none tests/regression.cjs tests/perfil.cjs",
+    "test:integration": "npm run build && node tests/integration.cjs"
   },
   "license": "ISC",
   "dependencies": {

@@ -58,6 +58,8 @@ function Ordenes() {
   const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
 
+  const [busqueda, setBusqueda] = useState("");
+  const filtrados = ordenes.filter(item => `${item.codigo} ${item.placa} ${item.cliente_nombres} ${item.cliente_apellidos} ${item.estado_nombre}`.toLocaleLowerCase("es").includes(busqueda.trim().toLocaleLowerCase("es")));
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -373,6 +375,10 @@ function Ordenes() {
 
       {/* TABLA */}
 
+      <div className="filtros" style={{ marginBottom: 16 }}>
+        <label className="campo" style={{ flex: 1 }}><span>Buscar órdenes</span><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Escribe para filtrar los resultados" /></label>
+        <span className="resultado-busqueda" role="status">{filtrados.length} de {ordenes.length} resultados</span>
+      </div>
       <div className="ordenes-tabla-contenedor">
         <table className="ordenes-tabla">
           <thead>
@@ -390,14 +396,14 @@ function Ordenes() {
           </thead>
 
           <tbody>
-            {ordenes.length === 0 ? (
+            {filtrados.length === 0 ? (
               <tr>
                 <td colSpan={9} className="ordenes-sin-datos">
                   No hay órdenes registradas.
                 </td>
               </tr>
             ) : (
-              ordenes.map((orden) => (
+              filtrados.map((orden) => (
                 <tr key={orden.id}>
                   <td>{orden.id}</td>
 

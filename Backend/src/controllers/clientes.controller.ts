@@ -39,9 +39,9 @@ export const crearCliente = async (req: Request, res: Response) => {
     if (usuario_id !== undefined && usuario_id !== null) {
       const usuario = await pool.query(
         `
-                SELECT id
-                FROM usuarios
-                WHERE id = $1
+                SELECT u.id,u.activo,r.nombre AS rol
+                FROM usuarios u JOIN roles r ON r.id=u.rol_id
+                WHERE u.id = $1
                 `,
         [usuario_id],
       );
@@ -51,6 +51,11 @@ export const crearCliente = async (req: Request, res: Response) => {
           mensaje: "El usuario indicado no existe",
         });
       }
+      if (usuario.rows[0].rol !== 'cliente' || !usuario.rows[0].activo) {
+        return res.status(400).json({mensaje:'Solo puedes vincular una cuenta activa con rol cliente'});
+      }
+      const vinculado = await pool.query('SELECT id FROM clientes WHERE usuario_id=$1',[usuario_id]);
+      if (vinculado.rows.length) return res.status(409).json({mensaje:'La cuenta ya pertenece a otro cliente'});
     }
 
     const resultado = await pool.query(

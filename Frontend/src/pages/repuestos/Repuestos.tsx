@@ -28,6 +28,8 @@ const vacio = {
   precio_venta: "0",
 };
 export default function Repuestos() {
+  const [categoriaEditando, setCategoriaEditando] = useState<number | null>(null);
+  const [guardando, setGuardando] = useState(false);
   const { usuario } = useAutenticacion(),
     editable = usuario?.rol !== "mecanico";
   const [items, setItems] = useState<Repuesto[]>([]),
@@ -88,6 +90,8 @@ export default function Repuestos() {
       precio_compra: Number(form.precio_compra),
       precio_venta: Number(form.precio_venta),
     };
+    if (guardando) return;
+    setGuardando(true);
     try {
       if (editando) await api.put(`/repuestos/${editando}`, datos);
       else await api.post("/repuestos", datos);
@@ -97,26 +101,39 @@ export default function Repuestos() {
       setError(
         err.response?.data?.mensaje ?? "No se pudo guardar el repuesto.",
       );
+    } finally {
+      setGuardando(false);
     }
   };
   const estado = async (i: Repuesto) => {
+    if (guardando) return;
+    setGuardando(true);
     try {
       await api.patch(`/repuestos/${i.id}/estado`, { activo: !i.activo });
       await cargar();
     } catch (e: any) {
       setError(e.response?.data?.mensaje ?? "No se pudo cambiar el estado.");
+    } finally {
+      setGuardando(false);
     }
   };
   const crearCategoria = async (e: FormEvent) => {
     e.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
     try {
-      await api.post("/categorias_repuesto", { nombre: categoriaNueva });
+      if (categoriaEditando) await api.put(`/categorias_repuesto/${categoriaEditando}`, { nombre: categoriaNueva });
+      else await api.post("/categorias_repuesto", { nombre: categoriaNueva });
+      setCategoriaEditando(null);
       setCategoriaNueva("");
       await cargar();
     } catch (err: any) {
       setError(err.response?.data?.mensaje ?? "No se pudo crear la categoría.");
+    } finally {
+      setGuardando(false);
     }
   };
+
   return (
     <section className="gestion">
       <div className="gestion-encabezado">
@@ -130,11 +147,14 @@ export default function Repuestos() {
           </button>
         )}
       </div>
-      {error && <div className="mensaje-error">{error}</div>}
+      {error && <div className="mensaje-error" role="alert">{error}</div>}
       {editable && (
         <form className="panel" onSubmit={crearCategoria}>
+          <fieldset disabled={guardando} className="campos-guardado">
+          <h3>Categorías de repuestos</h3>
+          <label htmlFor="categoria-nombre">Nombre de la categoría</label>
           <div className="gestion-acciones">
-            <input
+            <input id="categoria-nombre" maxLength={60}
               required
               placeholder="Nueva categoría"
               value={categoriaNueva}
@@ -145,16 +165,32 @@ export default function Repuestos() {
                 borderRadius: ".5rem",
               }}
             />
-            <button className="boton-secundario">Agregar categoría</button>
+            <button className="boton-secundario">{
+              categoriaEditando ? "Guardar categoría" : "Agregar categoría"
+            }
+            </button>
+            {categoriaEditando && 
+              <button type="button" className="boton-secundario" 
+                onClick={()=>{setCategoriaEditando(null);setCategoriaNueva("");}}>Cancelar edición
+              </button>}
           </div>
+          <div className="categorias-lista">{categorias.map(c=>
+            <div className="categoria-item" key={c.id}>
+              <span>{c.nombre} {!c.activo && "(inactiva)"}</span>
+              <button type="button" aria-label={`Editar categoría ${c.nombre}`} 
+              onClick={()=>{setCategoriaEditando(c.id);setCategoriaNueva(c.nombre);}}>Editar</button>
+            </div>)}
+          </div>
+        </fieldset>
         </form>
       )}
       {mostrar && (
         <form className="panel" onSubmit={guardar}>
+          <fieldset disabled={guardando} className="campos-guardado">
           <div className="formulario-grid">
             <div className="campo">
-              <label>Categoría</label>
-              <select
+              <label htmlFor="repuestos-campo-1">Categoría</label>
+              <select id="repuestos-campo-1"
                 required
                 value={form.categoria_id}
                 onChange={(e) =>
@@ -172,24 +208,24 @@ export default function Repuestos() {
               </select>
             </div>
             <div className="campo">
-              <label>Código</label>
-              <input
+              <label htmlFor="repuestos-campo-2">Código</label>
+              <input id="repuestos-campo-2"
                 required
                 value={form.codigo}
                 onChange={(e) => setForm({ ...form, codigo: e.target.value })}
               />
             </div>
             <div className="campo">
-              <label>Nombre</label>
-              <input
+              <label htmlFor="repuestos-campo-3">Nombre</label>
+              <input id="repuestos-campo-3"
                 required
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
               />
             </div>
             <div className="campo">
-              <label>Stock mínimo</label>
-              <input
+              <label htmlFor="repuestos-campo-4">Stock mínimo</label>
+              <input id="repuestos-campo-4"
                 type="number"
                 min="0"
                 required
@@ -200,8 +236,8 @@ export default function Repuestos() {
               />
             </div>
             <div className="campo">
-              <label>Precio compra</label>
-              <input
+              <label htmlFor="repuestos-campo-5">Precio compra</label>
+              <input id="repuestos-campo-5"
                 type="number"
                 min="0"
                 step=".01"
@@ -213,8 +249,8 @@ export default function Repuestos() {
               />
             </div>
             <div className="campo">
-              <label>Precio venta</label>
-              <input
+              <label htmlFor="repuestos-campo-6">Precio venta</label>
+              <input id="repuestos-campo-6"
                 type="number"
                 min="0"
                 step=".01"
@@ -236,6 +272,7 @@ export default function Repuestos() {
               Cancelar
             </button>
           </div>
+        </fieldset>
         </form>
       )}
       <div className="filtros">

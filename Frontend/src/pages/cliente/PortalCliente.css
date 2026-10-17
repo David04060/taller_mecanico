@@ -1,0 +1,18 @@
+.diseño-principal .portal-metricas { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.diseño-principal .portal-accesos { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 18px; margin-top: 24px; }
+.diseño-principal .portal-accesos a { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 24px; border: 1px solid var(--t-borde); border-radius: 12px; text-decoration: none; color: var(--t-tinta); background: #fcfdff; transition: background .16s,border-color .16s; }
+.diseño-principal .portal-accesos a:hover { background: #f2f6ff; border-color: #9fb7e7; }
+.diseño-principal .portal-accesos a > span:not(.portal-icono):not(.portal-ir) { font-size: 13px; color: var(--t-suave); }
+.diseño-principal .portal-icono { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; background: #eaf0fc; color: var(--t-azul); margin-bottom: 6px; }
+.diseño-principal .portal-accesos a .portal-ir { font-size: 13px; color: #2450a1; font-weight: 600; margin-top: auto; padding-top: 12px; }
+.diseño-principal .portal-descripcion { color: var(--t-suave); font-size: 14px; margin: 0; }
+.diseño-principal .portal-contacto { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+.diseño-principal .portal-enlace-perfil { min-height: 44px; display: inline-flex; align-items: center; padding: 10px 16px; color: #254c83; border: 1px solid #a6b8cf; background: #fff; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 600; }
+.diseño-principal .portal-enlace-perfil:hover { background: #edf3fe; }
+.diseño-principal .portal-estado { background: #edf3ff; color: #2450a1; white-space: nowrap; }
+.diseño-principal .portal-total-pagos { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 24px; }
+.diseño-principal .portal-total-pagos span { color: var(--t-suave); font-size: 14px; }
+.diseño-principal .portal-total-pagos strong { color: var(--t-tinta); font-size: 26px; font-variant-numeric: tabular-nums; }
+@media(max-width:1100px) { .diseño-principal .portal-accesos { grid-template-columns: minmax(0,1fr); } }
+@media(max-width:760px) { .diseño-principal .portal-metricas { grid-template-columns: minmax(0,1fr); } }
+@media(prefers-reduced-motion:reduce) { .diseño-principal .portal-accesos a { transition: none; } }

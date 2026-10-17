@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
+import ReembolsosOrden from '../../components/ReembolsosOrden';
 import "./DetalleOrden.css";
 import { useAutenticacion } from "../../hooks/useAutenticacion";
 
@@ -250,7 +251,7 @@ function DetalleOrden() {
       return "No registrada";
     }
 
-    return new Date(fecha).toLocaleDateString("es-PE");
+    return new Date(/^\d{4}-\d{2}-\d{2}$/.test(fecha) ? `${fecha}T00:00:00` : fecha).toLocaleDateString("es-PE");
   };
 
   const formatearFechaHora = (fecha: string) => {
@@ -300,7 +301,7 @@ function DetalleOrden() {
       const respuesta = await api.get(`/ordenes_trabajo/${id}/detalle`);
 
       setDetalle(respuesta.data);
-      setDiagnostico("");
+      setDiagnostico(respuesta.data.orden.diagnostico || "");
     } catch (error) {
       console.error("Error al guardar diagnóstico:", error);
       setErrorDiagnostico("No se pudo guardar el diagnóstico.");
@@ -1136,7 +1137,7 @@ function DetalleOrden() {
             </div>
 
             <div className="detalle-orden-dato">
-              <span>Saldo pendiente</span>
+              <span>{Number(detalle.orden.estado_id)===7?'Presupuesto no cobrado (orden cancelada)':'Saldo pendiente'}</span>
 
               <strong>
                 S/ {Number(resumen_pago.saldo_pendiente).toFixed(2)}
@@ -1358,6 +1359,7 @@ function DetalleOrden() {
         </section>
 
         {/* HISTORIAL */}
+        {Number(detalle.orden.estado_id)===7&&<ReembolsosOrden ordenId={detalle.orden.id}/>}
         <section className="detalle-orden-seccion">
           <div className="detalle-orden-seccion-encabezado">
             <h2>Historial de estados</h2>

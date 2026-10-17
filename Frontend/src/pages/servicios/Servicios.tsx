@@ -13,6 +13,7 @@ interface Servicio {
 const inicial = { nombre: "", descripcion: "", precio_base: "" };
 
 export default function Servicios() {
+  const [guardando, setGuardando] = useState(false);
   const { usuario } = useAutenticacion();
   const puedeEditar =
     usuario?.rol === "administrador" || usuario?.rol === "recepcionista";
@@ -61,6 +62,8 @@ export default function Servicios() {
   };
   const guardar = async (e: FormEvent) => {
     e.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
     try {
       const datos = { ...form, precio_base: Number(form.precio_base) };
       if (editando) await api.put(`/servicios/${editando}`, datos);
@@ -71,14 +74,20 @@ export default function Servicios() {
       setError(
         err.response?.data?.mensaje ?? "No se pudo guardar el servicio.",
       );
+    } finally {
+      setGuardando(false);
     }
   };
   const estado = async (item: Servicio) => {
+    if (guardando) return;
+    setGuardando(true);
     try {
       await api.patch(`/servicios/${item.id}/estado`, { activo: !item.activo });
       await cargar();
     } catch (err: any) {
       setError(err.response?.data?.mensaje ?? "No se pudo cambiar el estado.");
+    } finally {
+      setGuardando(false);
     }
   };
   return (
@@ -94,21 +103,22 @@ export default function Servicios() {
           </button>
         )}
       </div>
-      {error && <div className="mensaje-error">{error}</div>}
+      {error && <div className="mensaje-error" role="alert">{error}</div>}
       {mostrar && (
         <form className="panel" onSubmit={guardar}>
+          <fieldset disabled={guardando} className="campos-guardado">
           <div className="formulario-grid">
             <div className="campo">
-              <label>Nombre</label>
-              <input
+              <label htmlFor="servicios-campo-1">Nombre</label>
+              <input id="servicios-campo-1"
                 required
                 value={form.nombre}
                 onChange={(e) => setForm({ ...form, nombre: e.target.value })}
               />
             </div>
             <div className="campo">
-              <label>Precio base</label>
-              <input
+              <label htmlFor="servicios-campo-2">Precio base</label>
+              <input id="servicios-campo-2"
                 required
                 min="0"
                 step="0.01"
@@ -120,8 +130,8 @@ export default function Servicios() {
               />
             </div>
             <div className="campo campo-completo">
-              <label>Descripción</label>
-              <textarea
+              <label htmlFor="servicios-campo-3">Descripción</label>
+              <textarea id="servicios-campo-3"
                 value={form.descripcion}
                 onChange={(e) =>
                   setForm({ ...form, descripcion: e.target.value })
@@ -139,6 +149,7 @@ export default function Servicios() {
               Cancelar
             </button>
           </div>
+        </fieldset>
         </form>
       )}
       <div className="filtros">

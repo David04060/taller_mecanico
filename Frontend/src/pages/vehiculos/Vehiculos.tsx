@@ -40,6 +40,8 @@ function Vehiculos() {
   const [vehiculos, setVehiculos] = useState<Vehiculo[]>([]);
   const [clientes, setClientes] = useState<Cliente[]>([]);
 
+  const [busqueda, setBusqueda] = useState("");
+  const filtrados = vehiculos.filter(item => `${item.placa} ${item.marca} ${item.modelo} ${item.cliente_nombres} ${item.cliente_apellidos}`.toLocaleLowerCase("es").includes(busqueda.trim().toLocaleLowerCase("es")));
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -421,6 +423,10 @@ function Vehiculos() {
 
       {/* TABLA */}
 
+      <div className="filtros" style={{ marginBottom: 16 }}>
+        <label className="campo" style={{ flex: 1 }}><span>Buscar vehículos</span><input type="search" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Escribe para filtrar los resultados" /></label>
+        <span className="resultado-busqueda" role="status">{filtrados.length} de {vehiculos.length} resultados</span>
+      </div>
       <div className="vehiculos-tabla-contenedor">
         <table className="vehiculos-tabla">
           <thead>
@@ -438,14 +444,14 @@ function Vehiculos() {
           </thead>
 
           <tbody>
-            {vehiculos.length === 0 ? (
+            {filtrados.length === 0 ? (
               <tr>
                 <td colSpan={9} className="vehiculos-sin-datos">
                   No hay vehículos registrados.
                 </td>
               </tr>
             ) : (
-              vehiculos.map((vehiculo) => (
+              filtrados.map((vehiculo) => (
                 <tr key={vehiculo.id}>
                   <td>{vehiculo.id}</td>
 

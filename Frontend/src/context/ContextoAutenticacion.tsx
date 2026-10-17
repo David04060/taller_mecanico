@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { comprobarSesion } from './comprobarSesion';
 import {
   ContextoAutenticacion,
   type Usuario,
@@ -16,6 +17,7 @@ export function ProveedorAutenticacion({
 
   // Indica si todavía estamos comprobando la sesión guardada
   const [cargandoSesion, setCargandoSesion] = useState(true);
+  const [errorSesion, setErrorSesion] = useState(false);
 
   useEffect(() => {
     const recuperarSesion = async () => {
@@ -24,18 +26,18 @@ export function ProveedorAutenticacion({
 
       if (tokenGuardado && usuarioGuardado) {
         try {
-          const usuarioConvertido: Usuario = JSON.parse(usuarioGuardado);
-
           const baseApi = import.meta.env.VITE_API_URL || "/api";
-          const respuesta = await fetch(`${baseApi}/auth/me`, {
-            headers: { Authorization: `Bearer ${tokenGuardado}` },
-          });
-          if (!respuesta.ok) {
+          const resultado = await comprobarSesion(baseApi, tokenGuardado);
+          if (resultado.estado === 'temporal') {
+            setErrorSesion(true);
+            setCargandoSesion(false);
+            return;
+          }
+          if (resultado.estado === 'invalida') {
             throw new Error("La sesión guardada ya no es válida");
           }
-          const datos = await respuesta.json();
           setToken(tokenGuardado);
-          setUsuario(datos.usuario ?? usuarioConvertido);
+          setUsuario(resultado.usuario);
         } catch (error) {
           console.error("Error al recuperar la sesión:", error);
 
@@ -55,6 +57,7 @@ export function ProveedorAutenticacion({
   }, []);
 
   const cerrarSesion = () => {
+    setErrorSesion(false);
     localStorage.removeItem("token");
     localStorage.removeItem("usuario");
 
@@ -70,6 +73,10 @@ export function ProveedorAutenticacion({
   };
 
   const autenticado = Boolean(token && usuario);
+  const actualizarUsuario = useCallback((datos: Usuario) => {
+    localStorage.setItem("usuario", JSON.stringify(datos));
+    setUsuario(datos);
+  }, []);
 
   return (
     <ContextoAutenticacion.Provider
@@ -80,9 +87,15 @@ export function ProveedorAutenticacion({
         cargandoSesion,
         cerrarSesion,
         iniciarSesion,
+        actualizarUsuario,
       }}
     >
-      {children}
+      {errorSesion ? <main style={{maxWidth: 480, margin: '15vh auto', padding: 24}}>
+        <h1>No se pudo comprobar la sesión</h1>
+        <p role="alert">El servidor no está disponible en este momento. Conservamos tu sesión para que puedas reintentar.</p>
+        <button onClick={() => window.location.reload()}>Reintentar</button>{' '}
+        <button onClick={cerrarSesion}>Volver al inicio de sesión</button>
+      </main> : children}
     </ContextoAutenticacion.Provider>
   );
 }

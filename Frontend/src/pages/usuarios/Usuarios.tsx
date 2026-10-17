@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useAutenticacion } from "../../hooks/useAutenticacion";
 import api from "../../services/api";
 import "../Gestion.css";
 
@@ -21,6 +22,7 @@ const inicial = {
 };
 
 export default function Usuarios() {
+  const { usuario: actual } = useAutenticacion();
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [formulario, setFormulario] = useState(inicial);
   const [editando, setEditando] = useState<number | null>(null);
@@ -126,8 +128,8 @@ export default function Usuarios() {
         <form className="panel" onSubmit={guardar}>
           <div className="formulario-grid">
             <div className="campo">
-              <label>Nombres</label>
-              <input
+              <label htmlFor="usuarios-campo-1">Nombres</label>
+              <input id="usuarios-campo-1"
                 required
                 value={formulario.nombres}
                 onChange={(e) =>
@@ -136,8 +138,8 @@ export default function Usuarios() {
               />
             </div>
             <div className="campo">
-              <label>Apellidos</label>
-              <input
+              <label htmlFor="usuarios-campo-2">Apellidos</label>
+              <input id="usuarios-campo-2"
                 required
                 value={formulario.apellidos}
                 onChange={(e) =>
@@ -146,8 +148,8 @@ export default function Usuarios() {
               />
             </div>
             <div className="campo">
-              <label>Correo</label>
-              <input
+              <label htmlFor="usuarios-campo-3">Correo</label>
+              <input id="usuarios-campo-3"
                 required
                 type="email"
                 value={formulario.email}
@@ -157,8 +159,8 @@ export default function Usuarios() {
               />
             </div>
             <div className="campo">
-              <label>Teléfono</label>
-              <input
+              <label htmlFor="usuarios-campo-4">Teléfono</label>
+              <input id="usuarios-campo-4"
                 required
                 value={formulario.telefono}
                 onChange={(e) =>
@@ -168,8 +170,8 @@ export default function Usuarios() {
             </div>
             {!editando && (
               <div className="campo">
-                <label>Contraseña</label>
-                <input
+                <label htmlFor="usuarios-campo-5">Contraseña</label>
+                <input id="usuarios-campo-5"
                   required
                   minLength={8}
                   type="password"
@@ -181,8 +183,8 @@ export default function Usuarios() {
               </div>
             )}
             <div className="campo">
-              <label>Rol</label>
-              <select
+              <label htmlFor="usuarios-campo-6">Rol</label>
+              <select id="usuarios-campo-6"
                 value={formulario.rol}
                 onChange={(e) =>
                   setFormulario({ ...formulario, rol: e.target.value })
@@ -247,12 +249,14 @@ export default function Usuarios() {
                   <div className="gestion-acciones">
                     <button
                       className="boton-secundario"
+                      disabled={!["mecanico", "recepcionista"].includes(u.rol)}
                       onClick={() => editar(u)}
                     >
                       Editar
                     </button>
                     <button
                       className="boton-peligro"
+                      disabled={u.id === actual?.id}
                       onClick={() => cambiarEstado(u)}
                     >
                       {u.activo ? "Desactivar" : "Activar"}

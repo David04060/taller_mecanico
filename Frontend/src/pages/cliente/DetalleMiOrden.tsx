@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
+import ReembolsosOrden from '../../components/ReembolsosOrden';
 import "./DetalleMiOrden.css";
 
 interface Servicio {
@@ -114,7 +115,7 @@ export default function DetalleMiOrden() {
         <div className="mi-orden-error">{error || "Orden no encontrada."}</div>
         <button
           className="mi-orden-volver"
-          onClick={() => navegar("/mi-cuenta")}
+          onClick={() => navegar("/mi-cuenta/ordenes")}
         >
           Volver
         </button>
@@ -129,7 +130,7 @@ export default function DetalleMiOrden() {
   };
   return (
     <section className="mi-orden">
-      <button className="mi-orden-volver" onClick={() => navegar("/mi-cuenta")}>
+      <button className="mi-orden-volver" onClick={() => navegar("/mi-cuenta/ordenes")}>
         ← Volver a mis órdenes
       </button>
       <header className="mi-orden-cabecera">
@@ -152,7 +153,7 @@ export default function DetalleMiOrden() {
           <p>Puede consultar en qué etapa se encuentra su vehículo.</p>
         </div>
         <ol className={`linea-estados ${cancelada ? "linea-cancelada" : ""}`}>
-          {estados.map((estado) => (
+          {estados.filter(estado => cancelada || estado.id !== 7).map((estado) => (
             <li key={estado.id} className={estadoClase(estado.id)}>
               <div className="linea-marcador">
                 <span>
@@ -169,6 +170,7 @@ export default function DetalleMiOrden() {
         </ol>
       </section>
 
+      {orden.estado.id===7&&<ReembolsosOrden ordenId={orden.id}/>}
       <div className="mi-orden-columnas">
         <section className="mi-orden-panel">
           <div className="mi-orden-titulo">
@@ -201,7 +203,7 @@ export default function DetalleMiOrden() {
               <dd>
                 {orden.fecha_estimada_entrega
                   ? new Date(
-                      `${orden.fecha_estimada_entrega}T00:00:00`,
+                      /^\d{4}-\d{2}-\d{2}$/.test(orden.fecha_estimada_entrega) ? `${orden.fecha_estimada_entrega}T00:00:00` : orden.fecha_estimada_entrega,
                     ).toLocaleDateString("es-PE")
                   : "Por definir"}
               </dd>
@@ -223,7 +225,7 @@ export default function DetalleMiOrden() {
             </strong>
           </div>
           <div className="saldo">
-            <span>Saldo pendiente</span>
+            <span>{orden.estado.id===7?'Presupuesto no cobrado (orden cancelada)':'Saldo pendiente'}</span>
             <strong>
               S/ {Number(orden.resumen_pago.saldo_pendiente).toFixed(2)}
             </strong>

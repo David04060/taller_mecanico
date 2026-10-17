@@ -155,6 +155,9 @@ function Aplicacion() {
                   </SoloRoles>
                 }
               />
+              <Route path="/mi-cuenta/vehiculos" element={<SoloRoles roles={["cliente"]}><MiCuenta key="vehiculos" apartado="vehiculos" /></SoloRoles>} />
+              <Route path="/mi-cuenta/ordenes" element={<SoloRoles roles={["cliente"]}><MiCuenta key="ordenes" apartado="ordenes" /></SoloRoles>} />
+              <Route path="/mi-cuenta/pagos" element={<SoloRoles roles={["cliente"]}><MiCuenta key="pagos" apartado="pagos" /></SoloRoles>} />
               <Route path="/mi-perfil" element={<MiPerfil />} />
             </Route>
           </Route>

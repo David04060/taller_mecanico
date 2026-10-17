@@ -1,9 +1,9 @@
 import { useState, type FormEvent } from "react";
-import { useAutenticacion } from "../../hooks/useAutenticacion";
+import DatosPersonales from "./DatosPersonales";
 import api from "../../services/api";
 import "../Gestion.css";
 export default function MiPerfil() {
-  const { usuario } = useAutenticacion();
+  const [guardando, setGuardando] = useState(false);
   const [form, setForm] = useState({ actual: "", nueva: "", confirmacion: "" }),
     [mensaje, setMensaje] = useState(""),
     [error, setError] = useState("");
@@ -15,6 +15,8 @@ export default function MiPerfil() {
       setError("Las contraseñas nuevas no coinciden.");
       return;
     }
+    if (guardando) return;
+    setGuardando(true);
     try {
       const { data } = await api.patch("/auth/password", {
         password_actual: form.actual,
@@ -26,6 +28,8 @@ export default function MiPerfil() {
       setError(
         err.response?.data?.mensaje ?? "No se pudo actualizar la contraseña.",
       );
+    } finally {
+      setGuardando(false);
     }
   };
   return (
@@ -36,23 +40,14 @@ export default function MiPerfil() {
           <p>Datos de la cuenta y seguridad.</p>
         </div>
       </div>
-      <div className="panel">
-        <h3>
-          {usuario?.nombres} {usuario?.apellidos}
-        </h3>
-        <p>
-          <strong>Correo:</strong> {usuario?.email}
-        </p>
-        <p>
-          <strong>Rol:</strong> {usuario?.rol}
-        </p>
-      </div>
+      <DatosPersonales />
       <form className="panel" onSubmit={guardar}>
+          <fieldset disabled={guardando} className="campos-guardado">
         <h3>Cambiar contraseña</h3>
         <div className="formulario-grid">
           <div className="campo">
-            <label>Contraseña actual</label>
-            <input
+            <label htmlFor="miperfil-campo-1">Contraseña actual</label>
+            <input id="miperfil-campo-1"
               type="password"
               required
               value={form.actual}
@@ -60,8 +55,8 @@ export default function MiPerfil() {
             />
           </div>
           <div className="campo">
-            <label>Nueva contraseña</label>
-            <input
+            <label htmlFor="miperfil-campo-2">Nueva contraseña</label>
+            <input id="miperfil-campo-2"
               type="password"
               minLength={8}
               required
@@ -70,8 +65,8 @@ export default function MiPerfil() {
             />
           </div>
           <div className="campo">
-            <label>Confirmar nueva contraseña</label>
-            <input
+            <label htmlFor="miperfil-campo-3">Confirmar nueva contraseña</label>
+            <input id="miperfil-campo-3"
               type="password"
               minLength={8}
               required
@@ -95,7 +90,8 @@ export default function MiPerfil() {
         <button className="boton-primario" style={{ marginTop: "1rem" }}>
           Actualizar contraseña
         </button>
-      </form>
+      </fieldset>
+        </form>
     </section>
   );
 }

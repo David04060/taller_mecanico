@@ -33,7 +33,10 @@ const verificarOrdenModificable = async (ordenId: number) => {
   };
 };
 export const crearOrden = async (req: AuthRequest, res: Response) => {
+  const client = await pool.connect();
+  let confirmado = false;
   try {
+    await client.query("BEGIN");
     const {
       codigo,
       vehiculo_id,
@@ -52,7 +55,7 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
     /*
      * Verificar código duplicado
      */
-    const codigoExistente = await pool.query(
+    const codigoExistente = await client.query(
       `
             SELECT id
             FROM ordenes_trabajo
@@ -70,7 +73,7 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
     /*
      * Verificar vehículo
      */
-    const vehiculo = await pool.query(
+    const vehiculo = await client.query(
       `
             SELECT id
             FROM vehiculos
@@ -91,7 +94,7 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
      * verificar que exista y tenga rol mecánico
      */
     if (mecanico_id) {
-      const mecanico = await pool.query(
+      const mecanico = await client.query(
         `
                 SELECT u.id
                 FROM usuarios u
@@ -115,7 +118,7 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
      * Estado inicial:
      * 1 = Recibido
      */
-    const resultado = await pool.query(
+    const resultado = await client.query(
       `
             INSERT INTO ordenes_trabajo
             (
@@ -172,7 +175,7 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
     /*
      * Registrar el primer estado
      */
-    await pool.query(
+    await client.query(
       `
             INSERT INTO historial_estados
             (
@@ -187,6 +190,8 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
       [resultado.rows[0].id, req.usuario!.id, "Orden creada"],
     );
 
+    await client.query("COMMIT");
+    confirmado = true;
     return res.status(201).json({
       mensaje: "Orden de trabajo creada correctamente",
       orden: resultado.rows[0],
@@ -197,6 +202,8 @@ export const crearOrden = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       mensaje: "Error interno del servidor",
     });
+  } finally {
+    try { if (!confirmado) await client.query("ROLLBACK"); } finally { client.release(); }
   }
 };
 
@@ -346,113 +353,47 @@ export const obtenerOrdenPorId = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const actualizarOrden = async (req: Request, res: Response) => {
+export const actualizarOrden = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-
-    const {
-      mecanico_id,
-      problema_reportado,
-      diagnostico,
-      observaciones,
-      fecha_estimada_entrega,
-    } = req.body;
-
-    /*
-     * Verificar orden
-     */
-    const orden = await pool.query(
-      `
-            SELECT id
-            FROM ordenes_trabajo
-            WHERE id = $1
-            `,
-      [id],
-    );
-
-    if (orden.rows.length === 0) {
-      return res.status(404).json({
-        mensaje: "Orden de trabajo no encontrada",
-      });
-    }
-
-    /*
-     * Verificar mecánico
-     */
+    const orden = await pool.query('SELECT * FROM ordenes_trabajo WHERE id = $1', [id]);
+    if (!orden.rows.length) return res.status(404).json({ mensaje: "Orden no encontrada" });
+    const actual = orden.rows[0];
+    if (req.usuario!.rol === "mecanico" && Number(actual.mecanico_id) !== req.usuario!.id)
+      return res.status(403).json({ mensaje: "La orden no está asignada a este mecánico" });
+    if ([6, 7].includes(Number(actual.estado_id)))
+      return res.status(400).json({ mensaje: "No se puede modificar una orden entregada o cancelada" });
+    if (req.usuario!.rol === "mecanico" && req.body.mecanico_id !== undefined && Number(req.body.mecanico_id) !== Number(actual.mecanico_id))
+      return res.status(403).json({ mensaje: "Solo administración y recepción pueden reasignar la orden" });
+    const { problema_reportado = actual.problema_reportado, diagnostico = actual.diagnostico,
+      observaciones = actual.observaciones, fecha_estimada_entrega = actual.fecha_estimada_entrega,
+      mecanico_id = actual.mecanico_id } = req.body;
+    if (typeof problema_reportado !== "string" || !problema_reportado.trim())
+      return res.status(400).json({ mensaje: "El problema reportado es obligatorio" });
     if (mecanico_id) {
-      const mecanico = await pool.query(
-        `
-                SELECT u.id
-                FROM usuarios u
-                INNER JOIN roles r
-                    ON u.rol_id = r.id
-                WHERE u.id = $1
-                AND u.activo = true
-                AND r.nombre = 'mecanico'
-                `,
-        [mecanico_id],
-      );
-
-      if (mecanico.rows.length === 0) {
-        return res.status(400).json({
-          mensaje: "El mecánico no existe o no tiene el rol de mecánico",
-        });
-      }
+      const mecanico = await pool.query(`SELECT u.id FROM usuarios u JOIN roles r ON r.id = u.rol_id
+        WHERE u.id = $1 AND u.activo = true AND r.nombre = 'mecanico'`, [mecanico_id]);
+      if (!mecanico.rows.length) return res.status(400).json({ mensaje: "El mecánico no existe o está inactivo" });
     }
-
-    const resultado = await pool.query(
-      `
-            UPDATE ordenes_trabajo
-            SET
-                mecanico_id = $1,
-                problema_reportado = $2,
-                diagnostico = $3,
-                observaciones = $4,
-                fecha_estimada_entrega = $5,
-                actualizado_en = now()
-            WHERE id = $6
-            RETURNING
-                id,
-                codigo,
-                vehiculo_id,
-                recepcionista_id,
-                mecanico_id,
-                estado_id,
-                problema_reportado,
-                diagnostico,
-                observaciones,
-                fecha_ingreso,
-                fecha_estimada_entrega,
-                fecha_entrega,
-                total,
-                creado_en,
-                actualizado_en
-            `,
-      [
-        mecanico_id || null,
-        problema_reportado,
-        diagnostico || null,
-        observaciones || null,
-        fecha_estimada_entrega || null,
-        id,
-      ],
-    );
-
-    return res.status(200).json({
-      mensaje: "Orden actualizada correctamente",
-      orden: resultado.rows[0],
-    });
+    const resultado = await pool.query(`UPDATE ordenes_trabajo SET mecanico_id=$1, problema_reportado=$2,
+      diagnostico=$3, observaciones=$4, fecha_estimada_entrega=$5, actualizado_en=now()
+      WHERE id=$6 AND estado_id NOT IN (6,7)
+      AND ($7::text <> 'mecanico' OR mecanico_id=$8) RETURNING *`,
+      [mecanico_id || null, problema_reportado.trim(), diagnostico || null, observaciones || null,
+       fecha_estimada_entrega || null, id, req.usuario!.rol, req.usuario!.id]);
+    if (!resultado.rows.length) return res.status(409).json({ mensaje: "La orden cambió; vuelva a cargarla" });
+    return res.json({ mensaje: "Orden actualizada correctamente", orden: resultado.rows[0] });
   } catch (error) {
     console.error("Error al actualizar orden:", error);
-
-    return res.status(500).json({
-      mensaje: "Error interno del servidor",
-    });
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
   }
 };
 
 export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
+  const client = await pool.connect();
+  let confirmado = false;
   try {
+    await client.query("BEGIN");
     const { id } = req.params;
     const { estado_id, comentario } = req.body;
 
@@ -484,7 +425,7 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
     // 2. Obtener la orden
     // ==========================================
 
-    const orden = await pool.query(
+    const orden = await client.query(
       `
       SELECT
         ot.id,
@@ -494,7 +435,7 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
         ot.diagnostico,
         ot.total
       FROM ordenes_trabajo ot
-      WHERE ot.id = $1
+      WHERE ot.id = $1 FOR UPDATE OF ot
       `,
       [id],
     );
@@ -513,7 +454,7 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
     // 3. Verificar que el nuevo estado exista
     // ==========================================
 
-    const estado = await pool.query(
+    const estado = await client.query(
       `
       SELECT
         id,
@@ -545,18 +486,8 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
       6: [],
       7: [],
     };
-    const verificacion = await verificarOrdenModificable(Number(id));
-
-    if (!verificacion.existe) {
-      return res.status(404).json({
-        mensaje: "Orden no encontrada",
-      });
-    }
-
-    if (verificacion.bloqueada) {
-      return res.status(400).json({
-        mensaje: "No se puede modificar una orden entregada o cancelada",
-      });
+    if ([6, 7].includes(estadoActual)) {
+      return res.status(400).json({mensaje: "No se puede modificar una orden entregada o cancelada"});
     }
     if (!transicionesPermitidas[estadoActual].includes(nuevoEstado)) {
       return res.status(400).json({
@@ -631,7 +562,7 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
     // 7. Obtener pagos de la orden
     // ==========================================
 
-    const pagos = await pool.query(
+    const pagos = await client.query(
       `
       SELECT
         COALESCE(SUM(monto), 0) AS total_pagado
@@ -696,16 +627,13 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
     // 10. Actualizar estado
     // ==========================================
 
-    const client = await pool.connect();
     let resultado;
     try {
-      await client.query("BEGIN");
       const bloqueo = await client.query(
         "SELECT estado_id FROM ordenes_trabajo WHERE id = $1 FOR UPDATE",
         [id],
       );
       if (Number(bloqueo.rows[0].estado_id) !== estadoActual) {
-        await client.query("ROLLBACK");
         return res
           .status(409)
           .json({ mensaje: "La orden cambió de estado; vuelva a cargarla" });
@@ -752,11 +680,9 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
         ],
       );
       await client.query("COMMIT");
+      confirmado = true;
     } catch (error) {
-      await client.query("ROLLBACK");
       throw error;
-    } finally {
-      client.release();
     }
 
     // ==========================================
@@ -784,6 +710,8 @@ export const cambiarEstadoOrden = async (req: AuthRequest, res: Response) => {
     return res.status(500).json({
       mensaje: "Error interno del servidor",
     });
+  } finally {
+    try { if (!confirmado) await client.query("ROLLBACK"); } finally { client.release(); }
   }
 };
 
@@ -907,150 +835,34 @@ export const registrarDiagnostico = async (req: AuthRequest, res: Response) => {
 };
 
 export const agregarServicioOrden = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { servicio_id, cantidad = 1 } = req.body;
+  if (!Number.isInteger(Number(servicio_id)) || Number(servicio_id) <= 0 ||
+      !Number.isInteger(Number(cantidad)) || Number(cantidad) <= 0)
+    return res.status(400).json({ mensaje: "Servicio y cantidad deben ser enteros positivos" });
+  const client = await pool.connect();
   try {
-    const { id } = req.params;
-    const { servicio_id, cantidad } = req.body;
-
-    // ==========================================
-    // 1. VALIDAR DATOS
-    // ==========================================
-
-    if (!servicio_id) {
-      return res.status(400).json({
-        mensaje: "servicio_id es obligatorio",
-      });
-    }
-
-    const cantidadServicio = cantidad ?? 1;
-
-    if (
-      !Number.isInteger(Number(cantidadServicio)) ||
-      Number(cantidadServicio) <= 0
-    ) {
-      return res.status(400).json({
-        mensaje: "La cantidad debe ser un número entero mayor que 0",
-      });
-    }
-
-    // ==========================================
-    // 2. BUSCAR ORDEN
-    // ==========================================
-
-    const orden = await pool.query(
-      `
-      SELECT
-        id,
-        codigo,
-        mecanico_id,
-        estado_id
-      FROM ordenes_trabajo
-      WHERE id = $1
-      `,
-      [id],
-    );
-
-    if (orden.rows.length === 0) {
-      return res.status(404).json({
-        mensaje: "La orden no existe",
-      });
-    }
-
-    const datosOrden = orden.rows[0];
-
-    // ==========================================
-    // 3. VALIDAR MECÁNICO ASIGNADO
-    // ==========================================
-
-    if (req.usuario!.rol === "mecanico") {
-      if (datosOrden.mecanico_id === null) {
-        return res.status(400).json({
-          mensaje: "La orden todavía no tiene un mecánico asignado",
-        });
-      }
-
-      if (Number(datosOrden.mecanico_id) !== req.usuario!.id) {
-        return res.status(403).json({
-          mensaje:
-            "No puedes agregar servicios a una orden que no tienes asignada",
-        });
-      }
-    }
-
-    // ==========================================
-    // 4. VALIDAR SERVICIO
-    // ==========================================
-
-    const servicio = await pool.query(
-      `
-      SELECT
-        id,
-        nombre,
-        precio_base,
-        activo
-      FROM servicios
-      WHERE id = $1
-      `,
-      [servicio_id],
-    );
-
-    if (servicio.rows.length === 0) {
-      return res.status(404).json({
-        mensaje: "El servicio no existe",
-      });
-    }
-
-    if (!servicio.rows[0].activo) {
-      return res.status(400).json({
-        mensaje: "El servicio está desactivado",
-      });
-    }
-    const verificacion = await verificarOrdenModificable(Number(id));
-
-    if (!verificacion.existe) {
-      return res.status(404).json({
-        mensaje: "Orden no encontrada",
-      });
-    }
-
-    if (verificacion.bloqueada) {
-      return res.status(400).json({
-        mensaje: "No se puede modificar una orden entregada o cancelada",
-      });
-    }
-    // ==========================================
-    // 5. INSERTAR SERVICIO
-    // ==========================================
-
-    const resultado = await pool.query(
-      `
-      INSERT INTO detalle_servicios (
-        orden_id,
-        servicio_id,
-        cantidad,
-        precio_unitario
-      )
-      VALUES ($1, $2, $3, $4)
-      RETURNING
-        id,
-        orden_id,
-        servicio_id,
-        cantidad,
-        precio_unitario
-      `,
-      [id, servicio_id, cantidadServicio, servicio.rows[0].precio_base],
-    );
-
-    return res.status(201).json({
-      mensaje: "Servicio agregado correctamente",
-      detalle: resultado.rows[0],
-    });
+    await client.query("BEGIN");
+    const orden = await client.query("SELECT id, mecanico_id, estado_id FROM ordenes_trabajo WHERE id=$1 FOR UPDATE", [id]);
+    const rechazar = async (status: number, mensaje: string) => {
+      await client.query("ROLLBACK"); return res.status(status).json({ mensaje });
+    };
+    if (!orden.rows.length) return await rechazar(404, "Orden no encontrada");
+    if ([6,7].includes(Number(orden.rows[0].estado_id))) return await rechazar(400, "La orden ya no puede modificarse");
+    if (req.usuario!.rol === "mecanico" && Number(orden.rows[0].mecanico_id) !== req.usuario!.id)
+      return await rechazar(403, "La orden no está asignada a este mecánico");
+    const servicio = await client.query("SELECT id, precio_base, activo FROM servicios WHERE id=$1", [servicio_id]);
+    if (!servicio.rows.length || !servicio.rows[0].activo) return await rechazar(400, "Servicio inexistente o inactivo");
+    const resultado = await client.query(`INSERT INTO detalle_servicios (orden_id, servicio_id, cantidad, precio_unitario)
+      VALUES ($1,$2,$3,$4) RETURNING *`, [id,servicio_id,Number(cantidad),servicio.rows[0].precio_base]);
+    await client.query("SELECT recalcular_total_orden($1)", [id]);
+    await client.query("COMMIT");
+    return res.status(201).json({ mensaje: "Servicio agregado correctamente", detalle: resultado.rows[0] });
   } catch (error) {
-    console.error("Error al agregar servicio a la orden:", error);
-
-    return res.status(500).json({
-      mensaje: "Error interno del servidor",
-    });
-  }
+    await client.query("ROLLBACK");
+    console.error("Error al agregar servicio:", error);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  } finally { client.release(); }
 };
 
 export const obtenerServiciosOrden = async (
@@ -1116,7 +928,7 @@ export const agregarRepuestoOrden = async (req: AuthRequest, res: Response) => {
     const { id } = req.params;
     const { repuesto_id, cantidad } = req.body;
 
-    if (!cantidad || cantidad <= 0) {
+    if (!Number.isInteger(Number(cantidad)) || Number(cantidad) <= 0 || !Number.isInteger(Number(repuesto_id)) || Number(repuesto_id) <= 0) {
       return res.status(400).json({
         mensaje: "La cantidad debe ser mayor que 0",
       });
@@ -1226,18 +1038,9 @@ export const agregarRepuestoOrden = async (req: AuthRequest, res: Response) => {
         mensaje: "El repuesto ya está agregado a esta orden",
       });
     }
-    const verificacion = await verificarOrdenModificable(Number(id));
-
-    if (!verificacion.existe) {
-      return res.status(404).json({
-        mensaje: "Orden no encontrada",
-      });
-    }
-
-    if (verificacion.bloqueada) {
-      return res.status(400).json({
-        mensaje: "No se puede modificar una orden entregada o cancelada",
-      });
+    if ([6, 7].includes(Number(datosOrden.estado_id))) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({ mensaje: "No se puede modificar una orden entregada o cancelada" });
     }
     // Registrar detalle del repuesto
     const detalle = await client.query(
@@ -1309,6 +1112,7 @@ export const agregarRepuestoOrden = async (req: AuthRequest, res: Response) => {
       [cantidad, repuesto_id],
     );
 
+    await client.query("SELECT recalcular_total_orden($1)", [id]);
     await client.query("COMMIT");
 
     return res.status(201).json({
@@ -1399,158 +1203,31 @@ export const obtenerRepuestosOrden = async (
   }
 };
 export const actualizarTotalOrden = async (req: AuthRequest, res: Response) => {
+  const client = await pool.connect();
+  let confirmado = false;
   try {
+    await client.query("BEGIN");
     const { id } = req.params;
-
-    // ==========================================
-    // 1. Verificar que la orden exista
-    // ==========================================
-
-    const orden = await pool.query(
-      `
-      SELECT
-        id,
-        codigo,
-        mecanico_id,
-        estado_id
-      FROM ordenes_trabajo
-      WHERE id = $1
-      `,
-      [id],
-    );
-
-    if (orden.rows.length === 0) {
-      return res.status(404).json({
-        mensaje: "La orden no existe",
-      });
-    }
-
-    const datosOrden = orden.rows[0];
-
-    // ==========================================
-    // 2. Verificar permisos del mecánico
-    // ==========================================
-
-    if (req.usuario!.rol === "mecanico") {
-      if (datosOrden.mecanico_id === null) {
-        return res.status(400).json({
-          mensaje: "La orden todavía no tiene un mecánico asignado",
-        });
-      }
-
-      if (Number(datosOrden.mecanico_id) !== req.usuario!.id) {
-        return res.status(403).json({
-          mensaje:
-            "No puedes actualizar el total de una orden que no tienes asignada",
-        });
-      }
-    }
-
-    // ==========================================
-    // 3. Verificar que la orden permita cambios
-    // ==========================================
-
-    if ([6, 7].includes(Number(datosOrden.estado_id))) {
-      return res.status(400).json({
-        mensaje:
-          "No se puede modificar el total de una orden entregada o cancelada",
-      });
-    }
-
-    // ==========================================
-    // 4. Calcular total de servicios
-    // ==========================================
-
-    const servicios = await pool.query(
-      `
-      SELECT
-        COALESCE(
-          SUM(cantidad * precio_unitario),
-          0
-        ) AS total
-      FROM detalle_servicios
-      WHERE orden_id = $1
-      `,
-      [id],
-    );
-
-    // ==========================================
-    // 5. Calcular total de repuestos
-    // ==========================================
-
-    const repuestos = await pool.query(
-      `
-      SELECT
-        COALESCE(
-          SUM(cantidad * precio_unitario),
-          0
-        ) AS total
-      FROM detalle_repuestos
-      WHERE orden_id = $1
-      `,
-      [id],
-    );
-
-    const totalServicios = Number(servicios.rows[0].total);
-
-    const totalRepuestos = Number(repuestos.rows[0].total);
-
-    const total = totalServicios + totalRepuestos;
-
-    const verificacion = await verificarOrdenModificable(Number(id));
-
-    if (!verificacion.existe) {
-      return res.status(404).json({
-        mensaje: "Orden no encontrada",
-      });
-    }
-
-    if (verificacion.bloqueada) {
-      return res.status(400).json({
-        mensaje: "No se puede modificar una orden entregada o cancelada",
-      });
-    }
-    // ==========================================
-    // 6. Actualizar total de la orden
-    // ==========================================
-
-    const resultado = await pool.query(
-      `
-      UPDATE ordenes_trabajo
-      SET
-        total = $1,
-        actualizado_en = now()
-      WHERE id = $2
-      RETURNING
-        id,
-        codigo,
-        total,
-        actualizado_en
-      `,
-      [total, id],
-    );
-
-    // ==========================================
-    // 7. Respuesta
-    // ==========================================
-
-    return res.status(200).json({
-      mensaje: "Total de la orden actualizado correctamente",
-
-      orden: resultado.rows[0],
-
-      detalle_total: {
-        servicios: totalServicios,
-        repuestos: totalRepuestos,
-        total,
-      },
-    });
+    const orden = await client.query("SELECT id, mecanico_id, estado_id FROM ordenes_trabajo WHERE id=$1 FOR UPDATE", [id]);
+    if (!orden.rows.length) return res.status(404).json({ mensaje: "Orden no encontrada" });
+    if ([6,7].includes(Number(orden.rows[0].estado_id))) return res.status(400).json({ mensaje: "La orden ya no puede modificarse" });
+    if (req.usuario!.rol === "mecanico" && Number(orden.rows[0].mecanico_id) !== req.usuario!.id)
+      return res.status(403).json({ mensaje: "La orden no está asignada a este mecánico" });
+    const servicios = await client.query("SELECT COALESCE(SUM(cantidad * precio_unitario),0) AS total FROM detalle_servicios WHERE orden_id=$1", [id]);
+    const repuestos = await client.query("SELECT COALESCE(SUM(cantidad * precio_unitario),0) AS total FROM detalle_repuestos WHERE orden_id=$1", [id]);
+    const pagos = await client.query("SELECT COALESCE(SUM(monto),0) AS total_pagado FROM pagos WHERE orden_id=$1", [id]);
+    const total = Math.round((Number(servicios.rows[0].total) + Number(repuestos.rows[0].total))*100)/100;
+    if (Number(pagos.rows[0].total_pagado) > total)
+      return res.status(409).json({ mensaje: "Los pagos registrados superan el total calculado; revise los detalles" });
+    const resultado = await client.query("UPDATE ordenes_trabajo SET total=$1, actualizado_en=now() WHERE id=$2 RETURNING id,codigo,total,actualizado_en", [total,id]);
+    await client.query("COMMIT"); confirmado = true;
+    return res.json({ mensaje: "Total actualizado correctamente", orden: resultado.rows[0],
+      detalle_total: { servicios: Number(servicios.rows[0].total), repuestos: Number(repuestos.rows[0].total), total } });
   } catch (error) {
-    console.error("Error al actualizar el total de la orden:", error);
-
-    return res.status(500).json({
-      mensaje: "Error interno del servidor",
-    });
+    console.error("Error al recalcular total:", error);
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  } finally {
+    try { if (!confirmado) await client.query("ROLLBACK"); } finally { client.release(); }
   }
 };
 export const obtenerHistorialOrden = async (
@@ -2114,6 +1791,8 @@ export const obtenerMisOrdenes = async (req: AuthRequest, res: Response) => {
         c.telefono AS cliente_telefono,
 
         ot.mecanico_id,
+        m.nombres AS mecanico_nombres,
+        m.apellidos AS mecanico_apellidos,
 
         ot.estado_id,
         eo.nombre AS estado_nombre,
@@ -2132,6 +1811,7 @@ export const obtenerMisOrdenes = async (req: AuthRequest, res: Response) => {
         ot.actualizado_en
 
       FROM ordenes_trabajo ot
+      INNER JOIN usuarios m ON m.id=ot.mecanico_id
 
       INNER JOIN vehiculos v
         ON ot.vehiculo_id = v.id

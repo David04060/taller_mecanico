@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { AuthRequest } from "../middleware/auth.middleware";
 import bcrypt from "bcryptjs";
 import { pool } from "../config/database";
 
@@ -17,6 +18,9 @@ export const crearUsuario = async (req: Request, res: Response) => {
       });
     }
 
+    if (typeof password !== "string" || password.length < 8 || Buffer.byteLength(password, "utf8") > 72) {
+      return res.status(400).json({ mensaje: "La contraseña debe tener al menos 8 caracteres y no superar 72 bytes" });
+    }
     // Solo se pueden crear recepcionistas y mecánicos
     if (!["recepcionista", "mecanico"].includes(rol)) {
       return res.status(400).json({
@@ -215,9 +219,9 @@ export const actualizarUsuario = async (req: Request, res: Response) => {
     // Verificar que el usuario exista
     const usuario = await pool.query(
       `
-            SELECT id
-            FROM usuarios
-            WHERE id = $1
+            SELECT u.id, r.nombre AS rol
+            FROM usuarios u JOIN roles r ON r.id=u.rol_id
+            WHERE u.id = $1
             `,
       [id],
     );
@@ -228,13 +232,17 @@ export const actualizarUsuario = async (req: Request, res: Response) => {
       });
     }
 
+    if (usuario.rows[0].rol === "administrador" || usuario.rows[0].rol === "cliente")
+      return res.status(400).json({ mensaje: "Esta pantalla solo permite editar personal de recepción y mecánica" });
+
     // Verificar que el email no pertenezca a otro usuario
     const emailExistente = await pool.query(
       `
-            SELECT id
-            FROM usuarios
+            SELECT u.id, r.nombre AS rol
+            FROM usuarios u JOIN roles r ON r.id=u.rol_id
             WHERE email = $1
-            AND id <> $2
+            AND u.id <> $2
+            LIMIT 1
             `,
       [email, id],
     );
@@ -306,7 +314,7 @@ export const actualizarUsuario = async (req: Request, res: Response) => {
 ACTIVAR / DESACTIVAR USUARIO
 ====================================================
 */
-export const cambiarEstadoUsuario = async (req: Request, res: Response) => {
+export const cambiarEstadoUsuario = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { activo } = req.body;
@@ -316,6 +324,9 @@ export const cambiarEstadoUsuario = async (req: Request, res: Response) => {
         mensaje: "El campo activo debe ser true o false",
       });
     }
+
+    if (!activo && Number(id) === req.usuario?.id)
+      return res.status(400).json({ mensaje: "No puedes desactivar tu propia cuenta" });
 
     const usuario = await pool.query(
       `

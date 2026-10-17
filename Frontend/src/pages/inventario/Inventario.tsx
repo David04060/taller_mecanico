@@ -26,6 +26,7 @@ interface Movimiento {
   usuario_apellidos: string;
 }
 export default function Inventario() {
+  const [guardando, setGuardando] = useState(false);
   const { usuario } = useAutenticacion();
   const esAdmin = usuario?.rol === "administrador" || usuario?.rol === "recepcionista";
   const [items, setItems] = useState<Item[]>([]),
@@ -66,6 +67,8 @@ export default function Inventario() {
   );
   const registrar = async (e: FormEvent) => {
     e.preventDefault();
+    if (guardando) return;
+    setGuardando(true);
     try {
       await api.post("/inventario/entrada", {
         repuesto_id: Number(entrada.repuesto_id),
@@ -83,6 +86,8 @@ export default function Inventario() {
       setError(
         err.response?.data?.mensaje ?? "No se pudo registrar la entrada.",
       );
+    } finally {
+      setGuardando(false);
     }
   };
   const bajos = items.filter((i) => i.stock_actual <= i.stock_minimo).length;
@@ -99,7 +104,7 @@ export default function Inventario() {
           </button>
         )}
       </div>
-      {error && <div className="mensaje-error">{error}</div>}
+      {error && <div className="mensaje-error" role="alert">{error}</div>}
       <div className="tarjetas-resumen">
         <div className="tarjeta-resumen">
           <span>Repuestos</span>
@@ -116,10 +121,11 @@ export default function Inventario() {
       </div>
       {mostrar && (
         <form className="panel" onSubmit={registrar}>
+          <fieldset disabled={guardando} className="campos-guardado">
           <div className="formulario-grid">
             <div className="campo">
-              <label>Repuesto</label>
-              <select
+              <label htmlFor="inventario-campo-1">Repuesto</label>
+              <select id="inventario-campo-1"
                 required
                 value={entrada.repuesto_id}
                 onChange={(e) =>
@@ -135,8 +141,8 @@ export default function Inventario() {
               </select>
             </div>
             <div className="campo">
-              <label>Cantidad</label>
-              <input
+              <label htmlFor="inventario-campo-2">Cantidad</label>
+              <input id="inventario-campo-2"
                 required
                 min="1"
                 type="number"
@@ -147,8 +153,8 @@ export default function Inventario() {
               />
             </div>
             <div className="campo">
-              <label>Motivo</label>
-              <input
+              <label htmlFor="inventario-campo-3">Motivo</label>
+              <input id="inventario-campo-3"
                 required
                 value={entrada.motivo}
                 onChange={(e) =>
@@ -167,6 +173,7 @@ export default function Inventario() {
               Cancelar
             </button>
           </div>
+        </fieldset>
         </form>
       )}
       <div className="filtros">

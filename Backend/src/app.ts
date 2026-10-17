@@ -1,3 +1,4 @@
+import { validarEntrada } from "./middleware/validacion.middleware";
 import cors from "cors";
 import express from "express";
 import helmet from "helmet";
@@ -36,6 +37,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/api", validarEntrada);
 app.use("/api/auth", authRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use("/api/clientes", clientesRoutes);

@@ -58,8 +58,9 @@ export const verificarToken = async (
 
     next();
   } catch (error) {
-    return res.status(401).json({
-      mensaje: "Token inválido o expirado",
-    });
+    if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError || error instanceof jwt.NotBeforeError) {
+      return res.status(401).json({ mensaje: "Token inválido o expirado" });
+    }
+    return res.status(503).json({ mensaje: "No se pudo verificar la sesión. Inténtalo nuevamente." });
   }
 };

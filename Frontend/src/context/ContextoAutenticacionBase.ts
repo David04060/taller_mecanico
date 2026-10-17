@@ -6,6 +6,9 @@ export interface Usuario {
   apellidos: string;
   email: string;
   rol: string;
+  telefono?: string | null;
+  direccion?: string | null;
+  dni?: string | null;
 }
 
 export interface ContextoAutenticacionProps {
@@ -15,6 +18,7 @@ export interface ContextoAutenticacionProps {
   cargandoSesion: boolean;
   cerrarSesion: () => void;
   iniciarSesion: (token: string, usuario: Usuario) => void;
+  actualizarUsuario: (usuario: Usuario) => void;
 }
 
 export const ContextoAutenticacion = createContext<

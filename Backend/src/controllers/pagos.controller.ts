@@ -3,157 +3,43 @@ import { pool } from "../config/database";
 import { AuthRequest } from "../middleware/auth.middleware";
 
 export const registrarPago = async (req: AuthRequest, res: Response) => {
+  const { id } = req.params;
+  const { metodo_pago_id, monto, referencia } = req.body;
+  const importe = Number(monto);
+  const centimos = Math.round(importe * 100);
+  if ((typeof monto !== "number" && typeof monto !== "string") || !Number.isFinite(importe) ||
+      importe <= 0 || importe > 99999999.99 || Math.abs(importe * 100 - centimos) > 0.000001)
+    return res.status(400).json({ mensaje: "El monto debe ser positivo y tener como máximo dos decimales" });
+  if (!Number.isInteger(Number(metodo_pago_id)) || Number(metodo_pago_id) <= 0)
+    return res.status(400).json({ mensaje: "Selecciona un método de pago válido" });
+  const client = await pool.connect();
   try {
-    const { id } = req.params;
-    const { metodo_pago_id, monto, referencia } = req.body;
-
-    // Validar método de pago
-    if (!metodo_pago_id) {
-      return res.status(400).json({
-        mensaje: "El método de pago es obligatorio",
-      });
-    }
-
-    // Validar monto
-    if (monto === undefined || monto === null) {
-      return res.status(400).json({
-        mensaje: "El monto es obligatorio",
-      });
-    }
-
-    const montoNumerico = Number(monto);
-
-    if (!Number.isFinite(montoNumerico) || montoNumerico <= 0) {
-      return res.status(400).json({
-        mensaje: "El monto debe ser mayor a 0",
-      });
-    }
-
-    // Verificar que la orden exista
-    const orden = await pool.query(
-      `
-      SELECT
-        id,
-        codigo,
-        total,
-        estado_id
-      FROM ordenes_trabajo
-      WHERE id = $1
-      `,
-      [id],
-    );
-
-    if (orden.rows.length === 0) {
-      return res.status(404).json({
-        mensaje: "La orden de trabajo no existe",
-      });
-    }
-
-    const ordenData = orden.rows[0];
-
-    const totalOrden = Number(ordenData.total);
-
-    if (totalOrden <= 0) {
-      return res.status(400).json({
-        mensaje: "La orden todavía no tiene un total válido",
-      });
-    }
-
-    // Verificar método de pago
-    const metodo = await pool.query(
-      `
-      SELECT
-        id,
-        nombre
-      FROM metodos_pago
-      WHERE id = $1
-        AND activo = true
-      `,
-      [metodo_pago_id],
-    );
-
-    if (metodo.rows.length === 0) {
-      return res.status(400).json({
-        mensaje: "El método de pago no existe o está inactivo",
-      });
-    }
-
-    // Obtener total pagado hasta el momento
-    const pagos = await pool.query(
-      `
-      SELECT COALESCE(
-        SUM(monto),
-        0
-      ) AS total_pagado
-      FROM pagos
-      WHERE orden_id = $1
-      `,
-      [id],
-    );
-
-    const totalPagado = Number(pagos.rows[0].total_pagado);
-
-    const saldoPendiente = totalOrden - totalPagado;
-
-    // Evitar pagar más de lo pendiente
-    if (montoNumerico > saldoPendiente) {
-      return res.status(400).json({
-        mensaje: "El monto supera el saldo pendiente",
-        total_orden: totalOrden,
-        total_pagado: totalPagado,
-        saldo_pendiente: saldoPendiente,
-      });
-    }
-
-    // Registrar pago
-    const resultado = await pool.query(
-      `
-      INSERT INTO pagos (
-        orden_id,
-        metodo_pago_id,
-        registrado_por,
-        monto,
-        referencia
-      )
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING
-        id,
-        orden_id,
-        metodo_pago_id,
-        registrado_por,
-        monto,
-        referencia,
-        fecha
-      `,
-      [
-        id,
-        metodo_pago_id,
-        req.usuario!.id,
-        montoNumerico,
-        referencia ? referencia.trim() : null,
-      ],
-    );
-
-    const nuevoTotalPagado = totalPagado + montoNumerico;
-
-    const nuevoSaldo = totalOrden - nuevoTotalPagado;
-
-    return res.status(201).json({
-      mensaje: "Pago registrado correctamente",
-      pago: resultado.rows[0],
-      resumen: {
-        total_orden: totalOrden,
-        total_pagado: nuevoTotalPagado,
-        saldo_pendiente: nuevoSaldo,
-      },
-    });
+    await client.query("BEGIN");
+    const rechazar = async (status: number, mensaje: string) => {
+      await client.query("ROLLBACK"); return res.status(status).json({ mensaje });
+    };
+    // El mismo bloqueo serializa pagos, cambios de detalle y cierre de la orden.
+    const orden = await client.query(
+      'SELECT id, total, estado_id FROM ordenes_trabajo WHERE id=$1 FOR UPDATE', [id]);
+    if (!orden.rows.length) return await rechazar(404, "Orden no encontrada");
+    if ([6,7].includes(Number(orden.rows[0].estado_id))) return await rechazar(400, "No se pueden registrar pagos en una orden cerrada");
+    const total = Math.round(Number(orden.rows[0].total) * 100);
+    if (total <= 0) return await rechazar(400, "La orden todavía no tiene un total válido");
+    const metodo = await client.query("SELECT id FROM metodos_pago WHERE id=$1 AND activo=true", [metodo_pago_id]);
+    if (!metodo.rows.length) return await rechazar(400, "Método de pago inexistente o inactivo");
+    const pagos = await client.query("SELECT COALESCE(SUM(monto),0) AS total_pagado FROM pagos WHERE orden_id=$1", [id]);
+    const pagado = Math.round(Number(pagos.rows[0].total_pagado) * 100);
+    if (centimos > total - pagado) return await rechazar(400, "El monto supera el saldo pendiente");
+    const resultado = await client.query(`INSERT INTO pagos (orden_id, metodo_pago_id, registrado_por, monto, referencia)
+      VALUES ($1,$2,$3,$4,$5) RETURNING *`, [id,metodo_pago_id,req.usuario!.id,centimos/100,referencia?.trim() || null]);
+    await client.query("COMMIT");
+    return res.status(201).json({ mensaje: "Pago registrado correctamente", pago: resultado.rows[0],
+      resumen: { total_orden: total/100, total_pagado: (pagado+centimos)/100, saldo_pendiente: (total-pagado-centimos)/100 } });
   } catch (error) {
+    await client.query("ROLLBACK");
     console.error("Error al registrar pago:", error);
-
-    return res.status(500).json({
-      mensaje: "Error interno del servidor",
-    });
-  }
+    return res.status(500).json({ mensaje: "Error interno del servidor" });
+  } finally { client.release(); }
 };
 
 export const obtenerPagosOrden = async (req: AuthRequest, res: Response) => {
@@ -257,12 +143,22 @@ export const obtenerPagos = async (_req: AuthRequest, res: Response) => {
        INNER JOIN usuarios u ON u.id = p.registrado_por
        ORDER BY p.fecha DESC, p.id DESC`,
     );
+    const devoluciones = await pool.query(`SELECT r.id,r.orden_id,ot.codigo AS orden_codigo,v.placa,
+      c.nombres AS cliente_nombres,c.apellidos AS cliente_apellidos,mp.nombre AS metodo_pago,
+      r.monto,r.referencia,r.motivo,r.fecha,u.nombres AS registrado_por_nombres,u.apellidos AS registrado_por_apellidos
+      FROM reembolsos r JOIN ordenes_trabajo ot ON ot.id=r.orden_id JOIN vehiculos v ON v.id=ot.vehiculo_id
+      JOIN clientes c ON c.id=v.cliente_id JOIN metodos_pago mp ON mp.id=r.metodo_pago_id
+      JOIN usuarios u ON u.id=r.registrado_por ORDER BY r.fecha DESC,r.id DESC`);
+    const totalReembolsado = devoluciones.rows.reduce((n,r)=>n+Math.round(Number(r.monto)*100),0)/100;
     const total = resultado.rows.reduce(
       (acumulado, pago) => acumulado + Number(pago.monto),
       0,
     );
     return res.json({
       pagos: resultado.rows,
+      reembolsos: devoluciones.rows,
+      total_reembolsado: totalReembolsado,
+      total_neto: Math.round((total-totalReembolsado)*100)/100,
       total,
       cantidad: resultado.rows.length,
     });
