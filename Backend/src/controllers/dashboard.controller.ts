@@ -72,8 +72,8 @@ export const obtenerResumenDashboard = async (
     // ==========================================
 
     const ingresos = await pool.query(`
-      SELECT (SELECT COALESCE(SUM(monto),0) FROM pagos)
-        - (SELECT COALESCE(SUM(monto),0) FROM reembolsos) AS total
+      SELECT COALESCE(SUM(monto),0) AS total
+      FROM pagos
     `);
 
     // ==========================================

@@ -143,20 +143,15 @@ export const obtenerPagos = async (_req: AuthRequest, res: Response) => {
        INNER JOIN usuarios u ON u.id = p.registrado_por
        ORDER BY p.fecha DESC, p.id DESC`,
     );
-    const devoluciones = await pool.query(`SELECT r.id,r.orden_id,ot.codigo AS orden_codigo,v.placa,
-      c.nombres AS cliente_nombres,c.apellidos AS cliente_apellidos,mp.nombre AS metodo_pago,
-      r.monto,r.referencia,r.motivo,r.fecha,u.nombres AS registrado_por_nombres,u.apellidos AS registrado_por_apellidos
-      FROM reembolsos r JOIN ordenes_trabajo ot ON ot.id=r.orden_id JOIN vehiculos v ON v.id=ot.vehiculo_id
-      JOIN clientes c ON c.id=v.cliente_id JOIN metodos_pago mp ON mp.id=r.metodo_pago_id
-      JOIN usuarios u ON u.id=r.registrado_por ORDER BY r.fecha DESC,r.id DESC`);
-    const totalReembolsado = devoluciones.rows.reduce((n,r)=>n+Math.round(Number(r.monto)*100),0)/100;
+
+    const totalReembolsado = 0;
     const total = resultado.rows.reduce(
       (acumulado, pago) => acumulado + Number(pago.monto),
       0,
     );
     return res.json({
       pagos: resultado.rows,
-      reembolsos: devoluciones.rows,
+      reembolsos: [],
       total_reembolsado: totalReembolsado,
       total_neto: Math.round((total-totalReembolsado)*100)/100,
       total,

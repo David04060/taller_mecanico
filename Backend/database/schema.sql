@@ -1199,17 +1199,3 @@ INSERT INTO public.metodos_pago (nombre, activo) VALUES
   ('Efectivo', true), ('Tarjeta', true),
   ('Transferencia bancaria', true), ('Yape', true), ('Plin', true)
 ON CONFLICT (nombre) DO NOTHING;
--- Actualización aditiva para instalaciones existentes. No modifica pagos históricos.
-CREATE TABLE IF NOT EXISTS public.reembolsos (
-  id integer GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  orden_id integer NOT NULL REFERENCES public.ordenes_trabajo(id) ON DELETE RESTRICT,
-  metodo_pago_id integer NOT NULL REFERENCES public.metodos_pago(id) ON DELETE RESTRICT,
-  registrado_por integer NOT NULL REFERENCES public.usuarios(id) ON DELETE RESTRICT,
-  monto numeric(10,2) NOT NULL CHECK (monto > 0),
-  motivo varchar(1000) NOT NULL CHECK (length(trim(motivo)) > 0),
-  referencia varchar(120),
-  clave_solicitud uuid NOT NULL,
-  fecha timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (orden_id, clave_solicitud)
-);
-CREATE INDEX IF NOT EXISTS idx_reembolsos_orden ON public.reembolsos(orden_id);

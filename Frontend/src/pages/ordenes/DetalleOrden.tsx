@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
-import ReembolsosOrden from '../../components/ReembolsosOrden';
 import "./DetalleOrden.css";
 import { useAutenticacion } from "../../hooks/useAutenticacion";
 
@@ -1359,7 +1358,6 @@ function DetalleOrden() {
         </section>
 
         {/* HISTORIAL */}
-        {Number(detalle.orden.estado_id)===7&&<ReembolsosOrden ordenId={detalle.orden.id}/>}
         <section className="detalle-orden-seccion">
           <div className="detalle-orden-seccion-encabezado">
             <h2>Historial de estados</h2>

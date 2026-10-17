@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../../services/api";
-import ReembolsosOrden from '../../components/ReembolsosOrden';
 import "./DetalleMiOrden.css";
 
 interface Servicio {
@@ -170,7 +169,6 @@ export default function DetalleMiOrden() {
         </ol>
       </section>
 
-      {orden.estado.id===7&&<ReembolsosOrden ordenId={orden.id}/>}
       <div className="mi-orden-columnas">
         <section className="mi-orden-panel">
           <div className="mi-orden-titulo">
